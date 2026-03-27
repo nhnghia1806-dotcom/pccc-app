@@ -1,3 +1,61 @@
+# PCCC Web (Next.js)
+
+Web app tính toán **phụ tải điện PCCC** theo công thức bạn cung cấp, có **đăng nhập email/password**, **tự lưu dữ liệu nhập**, và **xuất Excel/PDF**.
+
+## Yêu cầu
+
+- Node.js (đã có)
+- PostgreSQL (khuyên dùng chạy bằng Docker Desktop)
+
+## Cài đặt
+
+```bash
+cd pccc-app
+npm i
+```
+
+Tạo file `.env` từ `.env.example` và set `NEXTAUTH_SECRET`:
+
+```bash
+cp .env.example .env
+```
+
+Tạo secret:
+
+```bash
+openssl rand -base64 32
+```
+
+## Chạy Postgres bằng Docker
+
+1) Mở **Docker Desktop** (đảm bảo daemon đang chạy)
+
+2) Start database:
+
+```bash
+docker compose up -d
+```
+
+3) Tạo bảng:
+
+```bash
+npx prisma migrate dev
+```
+
+## Playwright (xuất PDF)
+
+```bash
+npx playwright install chromium
+```
+
+## Chạy app
+
+```bash
+npm run dev
+```
+
+Mở `http://localhost:3000` → đăng ký → vào tab **Điện PCCC**.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
