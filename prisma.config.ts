@@ -3,13 +3,9 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return value;
-}
+const databaseUrl =
+  process.env["DATABASE_URL"] ??
+  "postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -17,6 +13,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: requiredEnv("DATABASE_URL"),
+    url: databaseUrl,
   },
 });
