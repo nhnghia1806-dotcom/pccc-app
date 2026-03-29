@@ -1,6 +1,6 @@
 # PCCC Web (Next.js)
 
-Web app tính toán **phụ tải điện PCCC** theo công thức bạn cung cấp, có **đăng nhập email/password**, **tự lưu dữ liệu nhập**, và **xuất Excel/PDF**.
+Web app tính toán **phụ tải điện PCCC** theo công thức bạn cung cấp, có **đăng nhập email/password**, **tự lưu dữ liệu nhập**, và **xuất Excel**.
 
 ## Yêu cầu
 
@@ -40,12 +40,6 @@ docker compose up -d
 
 ```bash
 npx prisma migrate dev
-```
-
-## Playwright (xuất PDF)
-
-```bash
-npx playwright install chromium
 ```
 
 ## Chạy app

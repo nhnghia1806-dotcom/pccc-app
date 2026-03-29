@@ -4,6 +4,7 @@ import { signOut } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BackupPump, Inputs, NamedLoad } from "@/domain/pccc-electric/models";
 import { calcPcccElectric } from "@/domain/pccc-electric/calc";
+import { formatCalcNumber } from "@/domain/pccc-electric/format-calc-number";
 import { validateInputs } from "@/domain/pccc-electric/validate";
 
 type Props = { userEmail: string };
@@ -11,6 +12,7 @@ type Props = { userEmail: string };
 const defaultInputs: Inputs = {
   kdt: 1,
   kyc: 1,
+  kkD: 1.3,
   cosPhi: 0.8,
   kdp: 1.2,
   pumpsMain: [],
@@ -91,14 +93,21 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-lg border border-slate-200">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[10%]" />
+            <col className="w-[40%]" />
+            <col className="w-[30%]" />
+            <col className="w-[20%]" />
+            <col className="w-11" />
+          </colgroup>
           <thead className="bg-slate-50 text-slate-700">
             <tr>
-              <th className="w-12 px-3 py-2 text-left font-medium">#</th>
+              <th className="px-3 py-2 text-left font-medium">STT</th>
               <th className="px-3 py-2 text-left font-medium">Tên</th>
-              <th className="w-24 px-3 py-2 text-left font-medium">Công suất định mức (KW)</th>
-              <th className="w-20 px-3 py-2 text-left font-medium">Số lượng</th>
-              <th className="w-12 px-3 py-2 text-left font-medium"></th>
+              <th className="px-3 py-2 text-left font-medium">Công suất định mức (KW)</th>
+              <th className="px-3 py-2 text-left font-medium">Số lượng</th>
+              <th className="px-1 py-2 text-left font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -111,8 +120,8 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
             ) : (
               items.map((it, idx) => (
                 <tr key={idx} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-3 py-2">{idx + 1}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-6 py-2 text-left">{idx + 1}</td>
+                  <td className="min-w-0 px-3 py-2">
                     <input
                       className="w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
                       value={it.name}
@@ -123,7 +132,7 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="min-w-0 px-3 py-2">
                     <NumberInput
                       value={it.kw}
                       min={0}
@@ -135,7 +144,7 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="min-w-0 px-3 py-2">
                     <NumberInput
                       value={it.quantity}
                       min={0}
@@ -150,7 +159,7 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-1 py-2">
                     <button
                       className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
                       onClick={() => onChange(items.filter((_, i) => i !== idx))}
@@ -193,14 +202,21 @@ function BackupTable({
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-lg border border-slate-200">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[10%]" />
+            <col className="w-[40%]" />
+            <col className="w-[30%]" />
+            <col className="w-[20%]" />
+            <col className="w-11" />
+          </colgroup>
           <thead className="bg-slate-50 text-slate-700">
             <tr>
-              <th className="w-12 px-3 py-2 text-left font-medium">#</th>
+              <th className="px-3 py-2 text-left font-medium">STT</th>
               <th className="px-3 py-2 text-left font-medium">Tên bơm</th>
-              <th className="w-24 px-3 py-2 text-left font-medium">Công suất định mức (KW)</th>
-              <th className="w-20 px-3 py-2 text-left font-medium">Kkđ</th>
-              <th className="w-12 px-3 py-2 text-left font-medium"></th>
+              <th className="px-3 py-2 text-left font-medium">Công suất định mức (KW)</th>
+              <th className="px-3 py-2 text-left font-medium">Số lượng</th>
+              <th className="px-1 py-2 text-left font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -213,8 +229,8 @@ function BackupTable({
             ) : (
               items.map((it, idx) => (
                 <tr key={idx} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-3 py-2">{idx + 1}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-6 py-2 text-left">{idx + 1}</td>
+                  <td className="min-w-0 px-3 py-2">
                     <input
                       className="w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
                       value={it.name}
@@ -225,7 +241,7 @@ function BackupTable({
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="min-w-0 px-3 py-2">
                     <NumberInput
                       value={it.kw}
                       min={0}
@@ -237,19 +253,22 @@ function BackupTable({
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="min-w-0 px-3 py-2">
                     <NumberInput
-                      value={it.kkD}
+                      value={it.quantity}
                       min={0}
-                      step={0.01}
+                      step={1}
                       onChange={(v) => {
                         const next = items.slice();
-                        next[idx] = { ...next[idx], kkD: v };
+                        next[idx] = {
+                          ...next[idx],
+                          quantity: Math.max(0, Math.round(v)),
+                        };
                         onChange(next);
                       }}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-1 py-2">
                     <button
                       className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
                       onClick={() => onChange(items.filter((_, i) => i !== idx))}
@@ -272,7 +291,7 @@ function BackupTable({
         onClick={() =>
           onChange([
             ...items,
-            { name: `Bơm dự phòng ${items.length + 1}`, kw: 0, kkD: 1.3 },
+            { name: `Bơm dự phòng ${items.length + 1}`, kw: 0, quantity: 1 },
           ])
         }
       >
@@ -289,6 +308,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
     "idle" | "loading" | "saved" | "error"
   >("idle");
   const [calculateError, setCalculateError] = useState<string | null>(null);
+  const [formulaPanelOpen, setFormulaPanelOpen] = useState(true);
   const saveTimer = useRef<number | null>(null);
 
   const [results, setResults] = useState(() => calcPcccElectric(defaultInputs));
@@ -303,17 +323,37 @@ export default function PcccElectricClient({ userEmail }: Props) {
         if (!res.ok) throw new Error("load_failed");
         const j = (await res.json()) as { inputs?: Inputs };
         if (alive && j.inputs) {
+          const raw = j.inputs;
+          const legacyKkD =
+            typeof raw.kkD === "number" && Number.isFinite(raw.kkD)
+              ? raw.kkD
+              : (() => {
+                  const first = raw.backupPumps?.[0] as { kkD?: number } | undefined;
+                  return typeof first?.kkD === "number" && Number.isFinite(first.kkD)
+                    ? first.kkD
+                    : defaultInputs.kkD;
+                })();
           setInputs({
-            ...j.inputs,
-            pumpsMain: (j.inputs.pumpsMain ?? []).map((x) => ({
+            ...defaultInputs,
+            ...raw,
+            kkD: legacyKkD,
+            pumpsMain: (raw.pumpsMain ?? []).map((x) => ({
               ...x,
               quantity:
                 typeof x.quantity === "number" && Number.isFinite(x.quantity)
                   ? x.quantity
                   : 1,
             })),
-            otherLoads: (j.inputs.otherLoads ?? []).map((x) => ({
+            otherLoads: (raw.otherLoads ?? []).map((x) => ({
               ...x,
+              quantity:
+                typeof x.quantity === "number" && Number.isFinite(x.quantity)
+                  ? x.quantity
+                  : 1,
+            })),
+            backupPumps: (raw.backupPumps ?? []).map((x) => ({
+              name: typeof x.name === "string" ? x.name : "",
+              kw: typeof x.kw === "number" && Number.isFinite(x.kw) ? x.kw : 0,
               quantity:
                 typeof x.quantity === "number" && Number.isFinite(x.quantity)
                   ? x.quantity
@@ -364,18 +404,6 @@ export default function PcccElectricClient({ userEmail }: Props) {
     URL.revokeObjectURL(url);
   }
 
-  async function exportPdf() {
-    const res = await fetch("/api/export/pdf", { method: "POST" });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "pccc-dien.pdf";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   function handleCalculate() {
     const hasEmptyName = [...inputs.pumpsMain, ...inputs.otherLoads, ...inputs.backupPumps].some(
       (item) => item.name.trim() === "",
@@ -391,19 +419,17 @@ export default function PcccElectricClient({ userEmail }: Props) {
   return (
     <div className="min-h-screen bg-[#f3f6fb]">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-          <div>
-            <div className="text-[32px] font-extrabold leading-tight tracking-tight text-slate-800">
-              🔥 PHẦN MÊM TÍNH TOÁN PCCC
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden text-sm text-zinc-600 sm:block">
+        <div className="relative mx-auto flex min-h-[52px] w-full max-w-[1600px] items-center justify-center px-0 py-3 sm:min-h-[56px] sm:px-0 sm:py-4">
+          <h1 className="text-balance px-2 text-center text-xl font-extrabold leading-tight tracking-tight text-slate-800 sm:max-w-[calc(100%-15rem)] sm:text-[28px] md:max-w-[calc(100%-18rem)] md:text-[32px]">
+            🔥 PHẦN MỀM TÍNH TOÁN PCCC
+          </h1>
+          <div className="absolute right-2 top-1/2 z-10 flex max-w-[min(calc(100%-8rem),20rem)] -translate-y-1/2 items-center gap-2 sm:right-2 sm:gap-3 md:max-w-sm pr-8">
+            <span className="hidden min-w-0 flex-1 truncate text-right text-sm text-zinc-600 sm:inline">
               {userEmail}
-            </div>
+            </span>
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               onClick={() => signOut({ callbackUrl: "/login" })}
             >
               Đăng xuất
@@ -451,51 +477,71 @@ export default function PcccElectricClient({ userEmail }: Props) {
           </Card>
         ) : (
           <div className="space-y-6">
-            <Card title="Công thức tính toán" icon="📘">
-              <div className="space-y-3 text-sm text-zinc-700">
-                <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <div className="font-bold">1) Phụ tải tính toán PCCC</div>
-                  <div className="mt-1 font-mono text-[13px]">
-                    P<sub>tt</sub> = K<sub>đt</sub> · ΣP<sub>i</sub> = K<sub>đt</sub> · (P
-                    <sub>B</sub> + P<sub>KHÁC</sub>)
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <div className="font-bold">2) Công suất từng nhóm</div>
-                  <div className="mt-1 font-mono text-[13px]">
-                    P<sub>B/KHÁC</sub> = K<sub>yc</sub> · ΣP<sub>i</sub>
-                  </div>
-                  <div className="mt-1 font-mono text-[12px] text-slate-600">
-                    P<sub>i</sub> = P<sub>đm</sub> × Số lượng
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <div className="font-bold">3) Máy biến áp</div>
-                  <div className="mt-1 font-mono text-[13px]">
-                    S<sub>MBA</sub> ≥ P<sub>tt</sub> / cosφ
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <div className="font-bold">4) Máy phát (khi có bơm dự phòng)</div>
-                  <div className="mt-1 font-mono text-[13px]">
-                    S<sub>MPĐ</sub> ≥ max(S<sub>tt</sub>, S<sub>kđ</sub>) · k<sub>dp</sub>
-                  </div>
-                  <div className="mt-2 grid gap-1 font-mono text-[13px] text-zinc-700">
-                    <div>
-                      S<sub>tt</sub> = P<sub>tt</sub> / cosφ
-                    </div>
-                    <div>
-                      S<sub>kđ</sub> = P<sub>kđ</sub> / cosφ
-                    </div>
-                    <div>
-                      P<sub>kđ</sub> = Σ(P<sub>đm</sub> · K<sub>kđ</sub>)
+            <Card
+              title="Công thức tính toán"
+              icon="📘"
+              right={
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  onClick={() => setFormulaPanelOpen((v) => !v)}
+                  aria-expanded={formulaPanelOpen}
+                >
+                  {formulaPanelOpen ? "Đóng" : "Mở"}
+                </button>
+              }
+            >
+              {formulaPanelOpen ? (
+                <div className="space-y-3 text-sm text-zinc-700">
+                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
+                    <div className="font-bold">1) Phụ tải tính toán PCCC</div>
+                    <div className="mt-1 font-mono text-[13px]">
+                      P<sub>tt</sub> = K<sub>đt</sub> · ΣP<sub>i</sub> = K<sub>đt</sub> · (P
+                      <sub>B</sub> · K<sub>kđ</sub> + P<sub>BC</sub>)
                     </div>
                   </div>
+
+                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
+                    <div className="font-bold">2) Công suất từng thiết bị</div>
+                    <div className="mt-1 font-mono text-[13px]">
+                      P<sub>B/BC</sub> = K<sub>yc</sub> · ΣP<sub>i</sub>
+                    </div>
+                    <div className="mt-1 font-mono text-[12px] text-slate-600">
+                      P<sub>i</sub> = P<sub>đm</sub> × Số lượng
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
+                    <div className="font-bold">3) Công suất biểu kiến máy biến áp</div>
+                    <div className="mt-1 font-mono text-[13px]">
+                      S<sub>MBA</sub> ≥ P<sub>tt</sub> / cosφ
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
+                    <div className="font-bold">4) Công suất máy phát điện (khi có máy bơm động cơ điện dự phòng)</div>
+                    <div className="mt-1 font-mono text-[13px]">
+                      S<sub>MPĐ</sub> ≥ max(S<sub>tt</sub>, S<sub>kđ</sub>) · k<sub>dp</sub>
+                    </div>
+                    <div className="mt-2 grid gap-1 font-mono text-[13px] text-zinc-700">
+                      <div>
+                        S<sub>tt</sub> = P<sub>tt</sub> / cosφ
+                      </div>
+                      <div>
+                        S<sub>kđ</sub> = P<sub>kđ</sub> / cosφ
+                      </div>
+                      <div>
+                        P<sub>kđ</sub> = K<sub>kđ</sub> · Σ(P<sub>đm</sub> × SL)
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <p className="text-sm text-zinc-500">
+                  Đang ẩn phần công thức. Bấm <span className="font-medium text-slate-700">Mở</span>{" "}
+                  ở góc phải để mở lại.
+                </p>
+              )}
             </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -512,15 +558,12 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   onChange={(pumpsMain) => setInputs((s) => ({ ...s, pumpsMain }))}
                   addLabel="Thiết bị"
                 />
-                <div className="mt-3 text-xs text-zinc-500">
-                  Kyc (hệ số yêu cầu) = 1 theo TCVN 9206:2012.
-                </div>
               </Card>
 
               <Card
                 title={
                   <>
-                    Nhóm thiết bị phụ tải khác (P<sub>KHÁC</sub>)
+                    Nhóm thiết bị phụ tải báo cháy (P<sub>BC</sub>)
                   </>
                 }
                 icon="💡"
@@ -544,7 +587,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
               <Card title="Tham số chung" icon="🔧">
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">Kđt</div>
+                    <div className="text-xs font-medium text-zinc-700">K<sub>đt</sub></div>
                     <NumberInput
                       value={inputs.kdt}
                       step={0.01}
@@ -553,13 +596,25 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     />
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">Kyc</div>
+                    <div className="text-xs font-medium text-zinc-700">K<sub>yc</sub></div>
                     <NumberInput
                       value={inputs.kyc}
                       step={0.01}
                       min={0}
                       onChange={(kyc) => setInputs((s) => ({ ...s, kyc }))}
                     />
+                  </label>
+                  <label className="block">
+                    <div className="text-xs font-medium text-zinc-700">K<sub>kđ</sub></div>
+                    <NumberInput
+                      value={inputs.kkD}
+                      step={0.01}
+                      min={0}
+                      onChange={(kkD) => setInputs((s) => ({ ...s, kkD }))}
+                    />
+                    <div className="mt-1 text-[11px] text-zinc-500">
+                      Dùng cho P<sub>tt</sub> (MBA) và P<sub>kđ</sub> (bơm dự phòng)
+                    </div>
                   </label>
                   <label className="block">
                     <div className="text-xs font-medium text-zinc-700">cosφ</div>
@@ -574,7 +629,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">kdp</div>
+                    <div className="text-xs font-medium text-zinc-700">K<sub>dp</sub></div>
                     <NumberInput
                       value={inputs.kdp}
                       step={0.01}
@@ -624,13 +679,6 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   >
                     Xuất Excel
                   </button>
-                  <button
-                    type="button"
-                    className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                    onClick={exportPdf}
-                  >
-                    Xuất PDF
-                  </button>
                 </div>
                 {calculateError ? (
                   <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
@@ -647,23 +695,27 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     P<sub>B</sub> – Nhóm phụ tải cấp nước chữa cháy chính
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
-                    {results.pb.toFixed(1)} <span className="text-base font-medium">kW</span>
+                    {formatCalcNumber(results.pb)} <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
                   <div className="text-xs text-zinc-500">
-                    P<sub>KHÁC</sub> – Nhóm thiết bị phụ tải khác
+                    P<sub>BC</sub> – Nhóm thiết bị phụ tải khác
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
-                    {results.pkhac.toFixed(1)} <span className="text-base font-medium">kW</span>
+                    {formatCalcNumber(results.pkhac)} <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3">
                   <div className="text-xs text-zinc-500">
-                    P<sub>tt</sub> – Tổng phụ tải tính toán
+                    P<sub>tt</sub> – Tổng phụ tải tính toán (MBA)
                   </div>
-                  <div className="text-2xl font-semibold tracking-tight">
-                    {results.ptt.toFixed(1)} <span className="text-base font-medium">kW</span>
+                  <div className="mt-0.5 text-[11px] leading-snug text-zinc-500">
+                    K<sub>đt</sub> · (P<sub>B</sub> · K<sub>kđ</sub> + P<sub>BC</sub>) —{" "}
+                    <span className="font-medium text-zinc-600">không</span> gồm bơm dự phòng
+                  </div>
+                  <div className="mt-1 text-2xl font-semibold tracking-tight">
+                    {formatCalcNumber(results.ptt)} <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -671,39 +723,45 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     S<sub>MBA</sub> – Công suất biểu kiến tối thiểu
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
-                    {results.smba.toFixed(1)} <span className="text-base font-medium">kVA</span>
+                    {formatCalcNumber(results.smba)} <span className="text-base font-medium">kVA</span>
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
                   <div className="text-sm font-bold tracking-tight">
-                    Máy phát điện dự phòng (khi có bơm dự phòng)
+                    Công suất máy phát điện dự phòng cho bơm chữa cháy
                   </div>
                   <div className="mt-3 grid gap-2 text-sm text-zinc-700">
                     <div className="flex items-center justify-between">
                       <span>
+                        P<sub>tt</sub>
+                      </span>
+                      <span className="font-mono">{formatCalcNumber(results.pttBackup)} kW</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>
                         P<sub>kđ</sub>
                       </span>
-                      <span className="font-mono">{results.pkd.toFixed(1)} kW</span>
+                      <span className="font-mono">{formatCalcNumber(results.pkd)} kW</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>
                         S<sub>tt</sub>
                       </span>
-                      <span className="font-mono">{results.stt.toFixed(1)} kVA</span>
+                      <span className="font-mono">{formatCalcNumber(results.stt)} kVA</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>
                         S<sub>kđ</sub>
                       </span>
-                      <span className="font-mono">{results.skd.toFixed(1)} kVA</span>
+                      <span className="font-mono">{formatCalcNumber(results.skd)} kVA</span>
                     </div>
                     <div className="flex items-center justify-between border-t pt-2">
                       <span className="font-medium">
                         S<sub>MPĐ</sub> tối thiểu
                       </span>
                       <span className="font-mono font-semibold">
-                        {results.smpd.toFixed(1)} kVA
+                        {formatCalcNumber(results.smpd)} kVA
                       </span>
                     </div>
                   </div>

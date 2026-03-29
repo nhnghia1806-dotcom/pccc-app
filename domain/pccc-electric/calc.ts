@@ -8,10 +8,6 @@ function sumKw(items: { kw: number; quantity?: number }[]) {
   }, 0);
 }
 
-function round1(x: number) {
-  return Math.round(x * 10) / 10;
-}
-
 function safeDiv(a: number, b: number) {
   if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) return 0;
   return a / b;
@@ -20,34 +16,37 @@ function safeDiv(a: number, b: number) {
 export function calcPcccElectric(inputs: Inputs): Results {
   const kyc = Number.isFinite(inputs.kyc) ? inputs.kyc : 1;
   const kdt = Number.isFinite(inputs.kdt) ? inputs.kdt : 1;
+  const kkD = Number.isFinite(inputs.kkD) ? inputs.kkD : 1.3;
   const cosPhi = Number.isFinite(inputs.cosPhi) ? inputs.cosPhi : 0.8;
   const kdp = Number.isFinite(inputs.kdp) ? inputs.kdp : 1.2;
 
   const pb = kyc * sumKw(inputs.pumpsMain);
   const pkhac = kyc * sumKw(inputs.otherLoads);
-  const ptt = kdt * (pb + pkhac);
+  const pBackup = kyc * sumKw(inputs.backupPumps);
+  /** Ptt tổng cho MBA — không gồm bơm dự phòng */
+  const ptt = kdt * (pb * kkD + pkhac);
+  /** Ptt riêng nhóm bơm DP — khác `ptt` */
+  const pttBackup = kdt * pBackup;
 
   const smba = safeDiv(ptt, cosPhi);
 
-  const pkd = inputs.backupPumps.reduce((acc, p) => {
-    const kw = Number.isFinite(p.kw) ? p.kw : 0;
-    const kkD = Number.isFinite(p.kkD) ? p.kkD : 1;
-    return acc + kw * kkD;
-  }, 0);
+  const pkd = kkD * sumKw(inputs.backupPumps);
 
-  const stt = safeDiv(ptt, cosPhi);
+  /** S_tt (máy phát) = P_tt nhóm bơm dự phòng / cosφ — không dùng P_tt MBA */
+  const stt = safeDiv(pttBackup, cosPhi);
   const skd = safeDiv(pkd, cosPhi);
   const smpd = Math.max(stt, skd) * kdp;
 
   return {
-    pb: round1(pb),
-    pkhac: round1(pkhac),
-    ptt: round1(ptt),
-    smba: round1(smba),
-    pkd: round1(pkd),
-    stt: round1(stt),
-    skd: round1(skd),
-    smpd: round1(smpd),
+    pb,
+    pkhac,
+    pttBackup,
+    ptt,
+    smba,
+    pkd,
+    stt,
+    skd,
+    smpd,
   };
 }
 

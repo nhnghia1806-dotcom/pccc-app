@@ -20,6 +20,7 @@ export async function POST(req: Request) {
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
+  console.log('existing123', existing)
   if (existing) {
     return NextResponse.json(
       { error: "Email đã tồn tại." },
