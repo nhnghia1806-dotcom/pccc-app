@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import ExcelJS from "exceljs";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import type { Inputs } from "@/domain/pccc-electric/models";
+import { parseAppSavedJson } from "@/domain/app-saved";
 import { calcPcccElectric } from "@/domain/pccc-electric/calc";
 
 function sheetAddLoads(
@@ -26,13 +26,10 @@ export async function POST() {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const saved = await prisma.savedState.findUnique({ where: { userId: user.id } });
-  const raw = (saved?.json ?? null) as unknown as Inputs | null;
-  if (!raw) return NextResponse.json({ error: "no_state" }, { status: 400 });
+  const parsed = parseAppSavedJson(saved?.json ?? null);
+  if (!parsed) return NextResponse.json({ error: "no_state" }, { status: 400 });
 
-  const inputs: Inputs = {
-    ...raw,
-    kkD: Number.isFinite(raw.kkD) ? raw.kkD : 1.3,
-  };
+  const inputs = parsed.electric;
 
   const results = calcPcccElectric(inputs);
 

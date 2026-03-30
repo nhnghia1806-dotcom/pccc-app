@@ -2,10 +2,18 @@
 
 import { signOut } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { BackupPump, Inputs, NamedLoad } from "@/domain/pccc-electric/models";
+import { parseAppSavedJson, toAppSavedJson } from "@/domain/app-saved";
+import type {
+  BackupPump,
+  Inputs,
+  NamedLoad,
+} from "@/domain/pccc-electric/models";
 import { calcPcccElectric } from "@/domain/pccc-electric/calc";
 import { formatCalcNumber } from "@/domain/pccc-electric/format-calc-number";
 import { validateInputs } from "@/domain/pccc-electric/validate";
+import { calcFireBattery } from "@/domain/fire-battery/calc";
+import { createDefaultFireBatteryInputs } from "@/domain/fire-battery/defaults";
+import FireBatteryTab from "./fire-battery-tab";
 
 type Props = { userEmail: string };
 
@@ -76,7 +84,9 @@ function NumberInput({
       value={Number.isFinite(value) ? value : 0}
       min={min}
       step={step}
-      onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+      onChange={(e) =>
+        onChange(e.target.value === "" ? 0 : Number(e.target.value))
+      }
     />
   );
 }
@@ -105,7 +115,9 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
             <tr>
               <th className="px-3 py-2 text-left font-medium">STT</th>
               <th className="px-3 py-2 text-left font-medium">Tên</th>
-              <th className="px-3 py-2 text-left font-medium">Công suất định mức (KW)</th>
+              <th className="px-3 py-2 text-left font-medium">
+                Công suất định mức (KW)
+              </th>
               <th className="px-3 py-2 text-left font-medium">Số lượng</th>
               <th className="px-1 py-2 text-left font-medium"></th>
             </tr>
@@ -119,7 +131,10 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
               </tr>
             ) : (
               items.map((it, idx) => (
-                <tr key={idx} className="border-t border-slate-100 hover:bg-slate-50">
+                <tr
+                  key={idx}
+                  className="border-t border-slate-100 hover:bg-slate-50"
+                >
                   <td className="px-6 py-2 text-left">{idx + 1}</td>
                   <td className="min-w-0 px-3 py-2">
                     <input
@@ -162,7 +177,9 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                   <td className="px-1 py-2">
                     <button
                       className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
-                      onClick={() => onChange(items.filter((_, i) => i !== idx))}
+                      onClick={() =>
+                        onChange(items.filter((_, i) => i !== idx))
+                      }
                       title="Xóa"
                       type="button"
                     >
@@ -182,7 +199,11 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
         onClick={() =>
           onChange([
             ...items,
-            { name: `${addLabel} ${items.length + 1}`, kw: 0, quantity: 1 } as T,
+            {
+              name: `${addLabel} ${items.length + 1}`,
+              kw: 0,
+              quantity: 1,
+            } as T,
           ])
         }
       >
@@ -214,7 +235,9 @@ function BackupTable({
             <tr>
               <th className="px-3 py-2 text-left font-medium">STT</th>
               <th className="px-3 py-2 text-left font-medium">Tên bơm</th>
-              <th className="px-3 py-2 text-left font-medium">Công suất định mức (KW)</th>
+              <th className="px-3 py-2 text-left font-medium">
+                Công suất định mức (KW)
+              </th>
               <th className="px-3 py-2 text-left font-medium">Số lượng</th>
               <th className="px-1 py-2 text-left font-medium"></th>
             </tr>
@@ -228,7 +251,10 @@ function BackupTable({
               </tr>
             ) : (
               items.map((it, idx) => (
-                <tr key={idx} className="border-t border-slate-100 hover:bg-slate-50">
+                <tr
+                  key={idx}
+                  className="border-t border-slate-100 hover:bg-slate-50"
+                >
                   <td className="px-6 py-2 text-left">{idx + 1}</td>
                   <td className="min-w-0 px-3 py-2">
                     <input
@@ -271,7 +297,9 @@ function BackupTable({
                   <td className="px-1 py-2">
                     <button
                       className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
-                      onClick={() => onChange(items.filter((_, i) => i !== idx))}
+                      onClick={() =>
+                        onChange(items.filter((_, i) => i !== idx))
+                      }
                       title="Xóa"
                       type="button"
                     >
@@ -302,8 +330,17 @@ function BackupTable({
 }
 
 export default function PcccElectricClient({ userEmail }: Props) {
-  const [tab, setTab] = useState<"electric" | "tab2">("electric");
+  const [tab, setTab] = useState<"electric" | "fireBattery">("electric");
   const [inputs, setInputs] = useState<Inputs>(defaultInputs);
+  const [fireBattery, setFireBattery] = useState(
+    createDefaultFireBatteryInputs,
+  );
+  const [fireBatteryResults, setFireBatteryResults] = useState(() =>
+    calcFireBattery(createDefaultFireBatteryInputs()),
+  );
+  const [fireBatteryCalculateError, setFireBatteryCalculateError] = useState<
+    string | null
+  >(null);
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "loading" | "saved" | "error"
   >("idle");
@@ -321,45 +358,15 @@ export default function PcccElectricClient({ userEmail }: Props) {
       try {
         const res = await fetch("/api/state");
         if (!res.ok) throw new Error("load_failed");
-        const j = (await res.json()) as { inputs?: Inputs };
+        const j = (await res.json()) as { inputs?: unknown };
         if (alive && j.inputs) {
-          const raw = j.inputs;
-          const legacyKkD =
-            typeof raw.kkD === "number" && Number.isFinite(raw.kkD)
-              ? raw.kkD
-              : (() => {
-                  const first = raw.backupPumps?.[0] as { kkD?: number } | undefined;
-                  return typeof first?.kkD === "number" && Number.isFinite(first.kkD)
-                    ? first.kkD
-                    : defaultInputs.kkD;
-                })();
-          setInputs({
-            ...defaultInputs,
-            ...raw,
-            kkD: legacyKkD,
-            pumpsMain: (raw.pumpsMain ?? []).map((x) => ({
-              ...x,
-              quantity:
-                typeof x.quantity === "number" && Number.isFinite(x.quantity)
-                  ? x.quantity
-                  : 1,
-            })),
-            otherLoads: (raw.otherLoads ?? []).map((x) => ({
-              ...x,
-              quantity:
-                typeof x.quantity === "number" && Number.isFinite(x.quantity)
-                  ? x.quantity
-                  : 1,
-            })),
-            backupPumps: (raw.backupPumps ?? []).map((x) => ({
-              name: typeof x.name === "string" ? x.name : "",
-              kw: typeof x.kw === "number" && Number.isFinite(x.kw) ? x.kw : 0,
-              quantity:
-                typeof x.quantity === "number" && Number.isFinite(x.quantity)
-                  ? x.quantity
-                  : 1,
-            })),
-          });
+          const parsed = parseAppSavedJson(j.inputs);
+          if (parsed) {
+            setInputs(parsed.electric);
+            setFireBattery(parsed.fireBattery);
+            setFireBatteryResults(calcFireBattery(parsed.fireBattery));
+            setFireBatteryCalculateError(null);
+          }
         }
         if (alive) setSaveStatus("idle");
       } catch {
@@ -378,7 +385,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
         await fetch("/api/state", {
           method: "PUT",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ inputs }),
+          body: JSON.stringify({
+            inputs: toAppSavedJson({ electric: inputs, fireBattery }),
+          }),
         });
         setSaveStatus("saved");
         window.setTimeout(() => setSaveStatus("idle"), 800);
@@ -390,7 +399,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [inputs]);
+  }, [inputs, fireBattery]);
 
   async function exportExcel() {
     const res = await fetch("/api/export/excel", { method: "POST" });
@@ -405,15 +414,38 @@ export default function PcccElectricClient({ userEmail }: Props) {
   }
 
   function handleCalculate() {
-    const hasEmptyName = [...inputs.pumpsMain, ...inputs.otherLoads, ...inputs.backupPumps].some(
-      (item) => item.name.trim() === "",
-    );
+    const hasEmptyName = [
+      ...inputs.pumpsMain,
+      ...inputs.otherLoads,
+      ...inputs.backupPumps,
+    ].some((item) => item.name.trim() === "");
     if (hasEmptyName) {
-      setCalculateError("Vui lòng nhập đầy đủ tên thiết bị/bơm trước khi tính toán.");
+      setCalculateError(
+        "Vui lòng nhập đầy đủ tên thiết bị/bơm trước khi tính toán.",
+      );
       return;
     }
     setCalculateError(null);
     setResults(calcPcccElectric(inputs));
+  }
+
+  function handleCalculateFireBattery() {
+    const allRows = [...fireBattery.staticRows, ...fireBattery.alarmRows];
+    if (allRows.some((row) => row.name.trim() === "")) {
+      setFireBatteryCalculateError(
+        "Vui lòng nhập đầy đủ tên thiết bị trước khi tính toán.",
+      );
+      return;
+    }
+    setFireBatteryCalculateError(null);
+    setFireBatteryResults(calcFireBattery(fireBattery));
+  }
+
+  function handleResetFireBattery() {
+    const next = createDefaultFireBatteryInputs();
+    setFireBattery(next);
+    setFireBatteryResults(calcFireBattery(next));
+    setFireBatteryCalculateError(null);
   }
 
   return (
@@ -446,14 +478,14 @@ export default function PcccElectricClient({ userEmail }: Props) {
               onClick={() => setTab("electric")}
               type="button"
             >
-              Điện PCCC
+              Bảng tính nguồn điện lưới và máy phát điện dự phòng
             </button>
             <button
-              className={`rounded-md px-3 py-2 font-semibold ${tab === "tab2" ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}
-              onClick={() => setTab("tab2")}
+              className={`rounded-md px-3 py-2 font-semibold ${tab === "fireBattery" ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}
+              onClick={() => setTab("fireBattery")}
               type="button"
             >
-              Tab 2 (sắp có)
+              Bảng tính nguồn dự phòng trung tâm báo cháy
             </button>
           </div>
 
@@ -468,13 +500,15 @@ export default function PcccElectricClient({ userEmail }: Props) {
           </div>
         </div>
 
-        {tab === "tab2" ? (
-          <Card title="Tab 2" icon="🧪">
-            <div className="text-sm text-zinc-600">
-              Tab này để bạn bổ sung công thức khác sau. Mình đã dựng sẵn cấu trúc
-              2 tab để mở rộng mà không ảnh hưởng Tab 1.
-            </div>
-          </Card>
+        {tab === "fireBattery" ? (
+          <FireBatteryTab
+            inputs={fireBattery}
+            onChange={setFireBattery}
+            results={fireBatteryResults}
+            onCalculate={handleCalculateFireBattery}
+            onReset={handleResetFireBattery}
+            calculateError={fireBatteryCalculateError}
+          />
         ) : (
           <div className="space-y-6">
             <Card
@@ -494,52 +528,90 @@ export default function PcccElectricClient({ userEmail }: Props) {
               {formulaPanelOpen ? (
                 <div className="space-y-3 text-sm text-zinc-700">
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">1) Phụ tải tính toán PCCC</div>
-                    <div className="mt-1 font-mono text-[13px]">
-                      P<sub>tt</sub> = K<sub>đt</sub> · ΣP<sub>i</sub> = K<sub>đt</sub> · (P
+                    <div className="font-bold">
+                      1) Phụ tải tính toán của nhóm thiết bị báo cháy tự động và
+                      trạm bơm chữa cháy.
+                    </div>
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
+                      P<sub>tt</sub> = K<sub>đt</sub> · (P
                       <sub>B</sub> · K<sub>kđ</sub> + P<sub>BC</sub>)
                     </div>
+                    <ul className="space-y-1 text-sm text-slate-700">
+                      <li>
+                        • P<sub>B</sub>: Phụ tải bơm nước chữa cháy chính
+                      </li>
+                      <li>
+                        • P<sub>BC</sub>: Phụ tải của hệ thống báo cháy tự động
+                      </li>
+                      <li>
+                        • K<sub>đt</sub>: Hệ số đồng thời của phụ tải PCCC
+                      </li>
+                      <li>
+                        • K<sub>kđ</sub>: Hệ số khởi động của phụ tải PCCC
+                      </li>
+                    </ul>
                   </div>
 
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
                     <div className="font-bold">2) Công suất từng thiết bị</div>
-                    <div className="mt-1 font-mono text-[13px]">
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
                       P<sub>B/BC</sub> = K<sub>yc</sub> · ΣP<sub>i</sub>
                     </div>
-                    <div className="mt-1 font-mono text-[12px] text-slate-600">
-                      P<sub>i</sub> = P<sub>đm</sub> × Số lượng
-                    </div>
+                    <ul className="space-y-1 text-sm text-slate-700">
+                      <li>
+                        • P<sub>i</sub> = P<sub>đm</sub> × Số lượng
+                      </li>
+                    </ul>
                   </div>
 
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">3) Công suất biểu kiến máy biến áp</div>
-                    <div className="mt-1 font-mono text-[13px]">
+                    <div className="font-bold">
+                      3) Công suất biểu kiến máy biến áp
+                    </div>
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
                       S<sub>MBA</sub> ≥ P<sub>tt</sub> / cosφ
                     </div>
+                    <ul className="space-y-1 text-sm text-slate-700">
+                      <li>
+                        • P<sub>tt</sub>: Tổng phụ tải tính toán
+                      </li>
+                      <li>
+                        • cosφ: Hệ số công suất trung bình của lưới điện PCCC
+                      </li>
+                    </ul>
                   </div>
 
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">4) Công suất máy phát điện (khi có máy bơm động cơ điện dự phòng)</div>
-                    <div className="mt-1 font-mono text-[13px]">
-                      S<sub>MPĐ</sub> ≥ max(S<sub>tt</sub>, S<sub>kđ</sub>) · k<sub>dp</sub>
+                    <div className="font-bold">
+                      4) Công suất máy phát điện (khi có máy bơm động cơ điện dự
+                      phòng)
                     </div>
-                    <div className="mt-2 grid gap-1 font-mono text-[13px] text-zinc-700">
-                      <div>
-                        S<sub>tt</sub> = P<sub>tt</sub> / cosφ
-                      </div>
-                      <div>
-                        S<sub>kđ</sub> = P<sub>kđ</sub> / cosφ
-                      </div>
-                      <div>
-                        P<sub>kđ</sub> = K<sub>kđ</sub> · Σ(P<sub>đm</sub> × SL)
-                      </div>
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
+                      S<sub>MPĐ</sub> ≥ max(S<sub>tt</sub>, S<sub>kđ</sub>) · k
+                      <sub>dp</sub>
                     </div>
+                    <ul className="space-y-1 text-sm text-slate-700">
+                      <li>
+                        • S<sub>tt</sub> = P<sub>tt</sub> / cosφ
+                      </li>
+                      <li>
+                        • S<sub>kđ</sub> = P<sub>kđ</sub> / cosφ
+                      </li>
+                      <li>
+                        • P<sub>kđ</sub> = K<sub>kđ</sub> · ΣP<sub>i</sub>
+                      </li>
+                      <li>
+                        • K<sub>đp</sub>: Hệ số dự phòng, thường lấy từ 1.1 đến
+                        1.25
+                      </li>
+                    </ul>
                   </div>
                 </div>
               ) : (
                 <p className="text-sm text-zinc-500">
-                  Đang ẩn phần công thức. Bấm <span className="font-medium text-slate-700">Mở</span>{" "}
-                  ở góc phải để mở lại.
+                  Đang ẩn phần công thức. Bấm{" "}
+                  <span className="font-medium text-slate-700">Mở</span> ở góc
+                  phải để mở lại.
                 </p>
               )}
             </Card>
@@ -555,7 +627,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
               >
                 <LoadsTable<NamedLoad>
                   items={inputs.pumpsMain}
-                  onChange={(pumpsMain) => setInputs((s) => ({ ...s, pumpsMain }))}
+                  onChange={(pumpsMain) =>
+                    setInputs((s) => ({ ...s, pumpsMain }))
+                  }
                   addLabel="Thiết bị"
                 />
               </Card>
@@ -570,7 +644,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
               >
                 <LoadsTable<NamedLoad>
                   items={inputs.otherLoads}
-                  onChange={(otherLoads) => setInputs((s) => ({ ...s, otherLoads }))}
+                  onChange={(otherLoads) =>
+                    setInputs((s) => ({ ...s, otherLoads }))
+                  }
                   addLabel="Thiết bị"
                 />
               </Card>
@@ -580,14 +656,18 @@ export default function PcccElectricClient({ userEmail }: Props) {
               <Card title="Bơm dự phòng (để tính máy phát)" icon="⚙️">
                 <BackupTable
                   items={inputs.backupPumps}
-                  onChange={(backupPumps) => setInputs((s) => ({ ...s, backupPumps }))}
+                  onChange={(backupPumps) =>
+                    setInputs((s) => ({ ...s, backupPumps }))
+                  }
                 />
               </Card>
 
               <Card title="Tham số chung" icon="🔧">
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">K<sub>đt</sub></div>
+                    <div className="text-xs font-medium text-zinc-700">
+                      K<sub>đt</sub>
+                    </div>
                     <NumberInput
                       value={inputs.kdt}
                       step={0.01}
@@ -596,7 +676,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     />
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">K<sub>yc</sub></div>
+                    <div className="text-xs font-medium text-zinc-700">
+                      K<sub>yc</sub>
+                    </div>
                     <NumberInput
                       value={inputs.kyc}
                       step={0.01}
@@ -605,7 +687,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     />
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">K<sub>kđ</sub></div>
+                    <div className="text-xs font-medium text-zinc-700">
+                      K<sub>kđ</sub>
+                    </div>
                     <NumberInput
                       value={inputs.kkD}
                       step={0.01}
@@ -613,23 +697,30 @@ export default function PcccElectricClient({ userEmail }: Props) {
                       onChange={(kkD) => setInputs((s) => ({ ...s, kkD }))}
                     />
                     <div className="mt-1 text-[11px] text-zinc-500">
-                      Dùng cho P<sub>tt</sub> (MBA) và P<sub>kđ</sub> (bơm dự phòng)
+                      Dùng cho P<sub>tt</sub> (MBA) và P<sub>kđ</sub> (bơm dự
+                      phòng)
                     </div>
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">cosφ</div>
+                    <div className="text-xs font-medium text-zinc-700">
+                      cosφ
+                    </div>
                     <NumberInput
                       value={inputs.cosPhi}
                       step={0.01}
                       min={0}
-                      onChange={(cosPhi) => setInputs((s) => ({ ...s, cosPhi }))}
+                      onChange={(cosPhi) =>
+                        setInputs((s) => ({ ...s, cosPhi }))
+                      }
                     />
                     <div className="mt-1 text-[11px] text-zinc-500">
                       Khuyến nghị: 0.80–0.85
                     </div>
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">K<sub>dp</sub></div>
+                    <div className="text-xs font-medium text-zinc-700">
+                      K<sub>dp</sub>
+                    </div>
                     <NumberInput
                       value={inputs.kdp}
                       step={0.01}
@@ -695,7 +786,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     P<sub>B</sub> – Nhóm phụ tải cấp nước chữa cháy chính
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
-                    {formatCalcNumber(results.pb)} <span className="text-base font-medium">kW</span>
+                    {formatCalcNumber(results.pb)}{" "}
+                    <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -703,7 +795,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     P<sub>BC</sub> – Nhóm thiết bị phụ tải khác
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
-                    {formatCalcNumber(results.pkhac)} <span className="text-base font-medium">kW</span>
+                    {formatCalcNumber(results.pkhac)}{" "}
+                    <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3">
@@ -711,11 +804,14 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     P<sub>tt</sub> – Tổng phụ tải tính toán (MBA)
                   </div>
                   <div className="mt-0.5 text-[11px] leading-snug text-zinc-500">
-                    K<sub>đt</sub> · (P<sub>B</sub> · K<sub>kđ</sub> + P<sub>BC</sub>) —{" "}
-                    <span className="font-medium text-zinc-600">không</span> gồm bơm dự phòng
+                    K<sub>đt</sub> · (P<sub>B</sub> · K<sub>kđ</sub> + P
+                    <sub>BC</sub>) —{" "}
+                    <span className="font-medium text-zinc-600">không</span> gồm
+                    bơm dự phòng
                   </div>
                   <div className="mt-1 text-2xl font-semibold tracking-tight">
-                    {formatCalcNumber(results.ptt)} <span className="text-base font-medium">kW</span>
+                    {formatCalcNumber(results.ptt)}{" "}
+                    <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -723,7 +819,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     S<sub>MBA</sub> – Công suất biểu kiến tối thiểu
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
-                    {formatCalcNumber(results.smba)} <span className="text-base font-medium">kVA</span>
+                    {formatCalcNumber(results.smba)}{" "}
+                    <span className="text-base font-medium">kVA</span>
                   </div>
                 </div>
 
@@ -736,25 +833,33 @@ export default function PcccElectricClient({ userEmail }: Props) {
                       <span>
                         P<sub>tt</sub>
                       </span>
-                      <span className="font-mono">{formatCalcNumber(results.pttBackup)} kW</span>
+                      <span className="font-mono">
+                        {formatCalcNumber(results.pttBackup)} kW
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>
                         P<sub>kđ</sub>
                       </span>
-                      <span className="font-mono">{formatCalcNumber(results.pkd)} kW</span>
+                      <span className="font-mono">
+                        {formatCalcNumber(results.pkd)} kW
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>
                         S<sub>tt</sub>
                       </span>
-                      <span className="font-mono">{formatCalcNumber(results.stt)} kVA</span>
+                      <span className="font-mono">
+                        {formatCalcNumber(results.stt)} kVA
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>
                         S<sub>kđ</sub>
                       </span>
-                      <span className="font-mono">{formatCalcNumber(results.skd)} kVA</span>
+                      <span className="font-mono">
+                        {formatCalcNumber(results.skd)} kVA
+                      </span>
                     </div>
                     <div className="flex items-center justify-between border-t pt-2">
                       <span className="font-medium">
@@ -768,7 +873,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
 
                   {inputs.backupPumps.length === 0 ? (
                     <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
-                      Để tính máy phát điện, hãy thêm bơm dự phòng ở danh sách bên trái.
+                      Để tính máy phát điện, hãy thêm bơm dự phòng ở danh sách
+                      bên trái.
                     </div>
                   ) : null}
                 </div>
@@ -780,4 +886,3 @@ export default function PcccElectricClient({ userEmail }: Props) {
     </div>
   );
 }
-
