@@ -11,23 +11,21 @@ export type BackupPump = {
 };
 
 export type Inputs = {
-  kdt: number; // hệ số đồng thời
   kyc: number; // hệ số yêu cầu
-  /** Kkđ chung — nhân PB trong Ptt MBA và nhân Σ(Pđm·SL) bơm dự phòng khi tính Pkđ */
+  /** Kkđ chung — nhân Σ(Pđm·SL) bơm dự phòng khi tính Pkđ */
   kkD: number;
   cosPhi: number;
   kdp: number; // hệ số dự phòng máy phát
   pumpsMain: NamedLoad[];
-  otherLoads: NamedLoad[];
   backupPumps: BackupPump[];
 };
 
 export type Results = {
-  pb: number;
-  pkhac: number;
-  /** Kđt · Kyc · Σ(Pđm·SL) chỉ bảng bơm dự phòng — khác hẳn `ptt` (MBA) */
+  /** Σ P_i — tổng (P_đm × SL), kW */
+  sumPi: number;
+  /** Kyc · Σ(Pđm·SL) bảng bơm dự phòng — khác `ptt` (MBA) */
   pttBackup: number;
-  /** Kđt · (PB·Kkđ + PBC) — tổng phụ tải cho MBA, không gồm bơm dự phòng */
+  /** P_tt = K_yc · Σ P_i — phụ tải tính toán MBA, không gồm bơm dự phòng */
   ptt: number;
   smba: number;
   pkd: number;

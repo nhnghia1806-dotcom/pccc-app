@@ -13,25 +13,24 @@ import { formatCalcNumber } from "@/domain/pccc-electric/format-calc-number";
 import { validateInputs } from "@/domain/pccc-electric/validate";
 import { calcFireBattery } from "@/domain/fire-battery/calc";
 import { createDefaultFireBatteryInputs } from "@/domain/fire-battery/defaults";
+import { KatexFormula } from "@/components/katex-formula";
 import FireBatteryTab from "./fire-battery-tab";
+import PcccImageStrip from "./pccc-image-strip";
 
 type Props = { userEmail: string };
 
 const defaultInputs: Inputs = {
-  kdt: 1,
   kyc: 1,
-  kkD: 1.3,
+  kkD: 1,
   cosPhi: 0.8,
   kdp: 1.2,
   pumpsMain: [],
-  otherLoads: [],
   backupPumps: [],
 };
 
 const resetInputs: Inputs = {
   ...defaultInputs,
   pumpsMain: [],
-  otherLoads: [],
   backupPumps: [],
 };
 
@@ -347,6 +346,40 @@ export default function PcccElectricClient({ userEmail }: Props) {
   const [calculateError, setCalculateError] = useState<string | null>(null);
   const [formulaPanelOpen, setFormulaPanelOpen] = useState(true);
   const saveTimer = useRef<number | null>(null);
+  const calculateErrorClearTimer = useRef<number | null>(null);
+  const fireBatteryCalculateErrorClearTimer = useRef<number | null>(null);
+
+  function clearFireBatteryCalculateErrorDismissTimer() {
+    if (fireBatteryCalculateErrorClearTimer.current !== null) {
+      window.clearTimeout(fireBatteryCalculateErrorClearTimer.current);
+      fireBatteryCalculateErrorClearTimer.current = null;
+    }
+  }
+
+  function setTransientFireBatteryCalculateError(message: string) {
+    clearFireBatteryCalculateErrorDismissTimer();
+    setFireBatteryCalculateError(message);
+    fireBatteryCalculateErrorClearTimer.current = window.setTimeout(() => {
+      setFireBatteryCalculateError(null);
+      fireBatteryCalculateErrorClearTimer.current = null;
+    }, 3000);
+  }
+
+  function clearCalculateErrorDismissTimer() {
+    if (calculateErrorClearTimer.current !== null) {
+      window.clearTimeout(calculateErrorClearTimer.current);
+      calculateErrorClearTimer.current = null;
+    }
+  }
+
+  function setTransientCalculateError(message: string) {
+    clearCalculateErrorDismissTimer();
+    setCalculateError(message);
+    calculateErrorClearTimer.current = window.setTimeout(() => {
+      setCalculateError(null);
+      calculateErrorClearTimer.current = null;
+    }, 3000);
+  }
 
   const [results, setResults] = useState(() => calcPcccElectric(defaultInputs));
   const warnings = useMemo(() => validateInputs(inputs), [inputs]);
@@ -365,6 +398,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
             setInputs(parsed.electric);
             setFireBattery(parsed.fireBattery);
             setFireBatteryResults(calcFireBattery(parsed.fireBattery));
+            clearFireBatteryCalculateErrorDismissTimer();
             setFireBatteryCalculateError(null);
           }
         }
@@ -401,6 +435,17 @@ export default function PcccElectricClient({ userEmail }: Props) {
     };
   }, [inputs, fireBattery]);
 
+  useEffect(() => {
+    return () => {
+      if (calculateErrorClearTimer.current !== null) {
+        window.clearTimeout(calculateErrorClearTimer.current);
+      }
+      if (fireBatteryCalculateErrorClearTimer.current !== null) {
+        window.clearTimeout(fireBatteryCalculateErrorClearTimer.current);
+      }
+    };
+  }, []);
+
   async function exportExcel() {
     const res = await fetch("/api/export/excel", { method: "POST" });
     if (!res.ok) return;
@@ -414,17 +459,25 @@ export default function PcccElectricClient({ userEmail }: Props) {
   }
 
   function handleCalculate() {
-    const hasEmptyName = [
-      ...inputs.pumpsMain,
-      ...inputs.otherLoads,
-      ...inputs.backupPumps,
-    ].some((item) => item.name.trim() === "");
+    const allPumps = [...inputs.pumpsMain, ...inputs.backupPumps];
+    if (allPumps.length === 0) {
+      setTransientCalculateError(
+        "Vui lòng thêm ít nhất một thiết bị/bơm.",
+      );
+      return;
+    }
+
+    const hasEmptyName = [...inputs.pumpsMain, ...inputs.backupPumps].some(
+      (item) => item.name.trim() === "",
+    );
     if (hasEmptyName) {
-      setCalculateError(
+      setTransientCalculateError(
         "Vui lòng nhập đầy đủ tên thiết bị/bơm trước khi tính toán.",
       );
       return;
     }
+
+    clearCalculateErrorDismissTimer();
     setCalculateError(null);
     setResults(calcPcccElectric(inputs));
   }
@@ -432,16 +485,18 @@ export default function PcccElectricClient({ userEmail }: Props) {
   function handleCalculateFireBattery() {
     const allRows = [...fireBattery.staticRows, ...fireBattery.alarmRows];
     if (allRows.some((row) => row.name.trim() === "")) {
-      setFireBatteryCalculateError(
+      setTransientFireBatteryCalculateError(
         "Vui lòng nhập đầy đủ tên thiết bị trước khi tính toán.",
       );
       return;
     }
+    clearFireBatteryCalculateErrorDismissTimer();
     setFireBatteryCalculateError(null);
     setFireBatteryResults(calcFireBattery(fireBattery));
   }
 
   function handleResetFireBattery() {
+    clearFireBatteryCalculateErrorDismissTimer();
     const next = createDefaultFireBatteryInputs();
     setFireBattery(next);
     setFireBatteryResults(calcFireBattery(next));
@@ -471,21 +526,23 @@ export default function PcccElectricClient({ userEmail }: Props) {
       </header>
 
       <div className="mx-auto max-w-[1600px] px-[40px] py-[32px]">
+        <PcccImageStrip />
+
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-sm">
+          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 font-sans text-sm">
             <button
               className={`rounded-md px-3 py-2 font-semibold ${tab === "electric" ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}
               onClick={() => setTab("electric")}
               type="button"
             >
-              Bảng tính nguồn điện lưới và máy phát điện dự phòng
+              BẢNG TÍNH NGUỒN CẤP ĐIỆN CHO TRẠM BƠM PHỤC VỤ CHỮA CHÁY
             </button>
             <button
               className={`rounded-md px-3 py-2 font-semibold ${tab === "fireBattery" ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}
               onClick={() => setTab("fireBattery")}
               type="button"
             >
-              Bảng tính nguồn dự phòng trung tâm báo cháy
+              BẢNG TÍNH NGUỒN CẤP ĐIỆN CHO HỆ THỐNG BÁO CHÁY TỰ ĐỘNG
             </button>
           </div>
 
@@ -529,80 +586,101 @@ export default function PcccElectricClient({ userEmail }: Props) {
                 <div className="space-y-3 text-sm text-zinc-700">
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
                     <div className="font-bold">
-                      1) Phụ tải tính toán của nhóm thiết bị báo cháy tự động và
-                      trạm bơm chữa cháy.
+                      1) Phụ tải tính toán bơm nước chữa cháy
                     </div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                      P<sub>tt</sub> = K<sub>đt</sub> · (P
-                      <sub>B</sub> · K<sub>kđ</sub> + P<sub>BC</sub>)
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                      <KatexFormula math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i" />
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
-                      <li>
-                        • P<sub>B</sub>: Phụ tải bơm nước chữa cháy chính
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula
+                          display={false}
+                          math="P_i = P_{\text{đm}} \cdot \text{Số lượng}"
+                        />
+                        <span>(Công suất điện định mức của bơm thứ i)</span>
                       </li>
-                      <li>
-                        • P<sub>BC</sub>: Phụ tải của hệ thống báo cháy tự động
-                      </li>
-                      <li>
-                        • K<sub>đt</sub>: Hệ số đồng thời của phụ tải PCCC
-                      </li>
-                      <li>
-                        • K<sub>kđ</sub>: Hệ số khởi động của phụ tải PCCC
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">2) Công suất từng thiết bị</div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                      P<sub>B/BC</sub> = K<sub>yc</sub> · ΣP<sub>i</sub>
-                    </div>
-                    <ul className="space-y-1 text-sm text-slate-700">
-                      <li>
-                        • P<sub>i</sub> = P<sub>đm</sub> × Số lượng
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula display={false} math="K_{yc}" />
+                        <span>: Hệ số yêu cầu của phụ tải PCCC</span>
                       </li>
                     </ul>
                   </div>
 
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
                     <div className="font-bold">
-                      3) Công suất biểu kiến máy biến áp
+                      2) Công suất biểu kiến máy biến áp
                     </div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                      S<sub>MBA</sub> ≥ P<sub>tt</sub> / cosφ
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                      <KatexFormula math="S_{\mathrm{MBA}} \geq \dfrac{P_{tt}}{\cos\varphi}" />
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
-                      <li>
-                        • P<sub>tt</sub>: Tổng phụ tải tính toán
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula display={false} math="P_{tt}" />
+                        <span>: Tổng phụ tải tính toán</span>
                       </li>
-                      <li>
-                        • cosφ: Hệ số công suất trung bình của lưới điện PCCC
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula display={false} math="\cos\varphi" />
+                        <span>
+                          : Hệ số công suất trung bình của lưới điện PCCC
+                        </span>
                       </li>
                     </ul>
                   </div>
 
                   <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
                     <div className="font-bold">
-                      4) Công suất máy phát điện (khi có máy bơm động cơ điện dự
-                      phòng)
+                      3) Công suất máy phát điện dự phòng (khi sử dụng bơm chữa
+                      cháy dự phòng điện)
                     </div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                      S<sub>MPĐ</sub> ≥ max(S<sub>tt</sub>, S<sub>kđ</sub>) · k
-                      <sub>dp</sub>
+                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                      <KatexFormula math="S_{\text{MPĐ}} \geq \max(S_{tt},\, S_{k\text{đ}}) \cdot k_{\mathrm{dp}}" />
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
-                      <li>
-                        • S<sub>tt</sub> = P<sub>tt</sub> / cosφ
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula
+                          display={false}
+                          math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i"
+                        />
                       </li>
-                      <li>
-                        • S<sub>kđ</sub> = P<sub>kđ</sub> / cosφ
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula
+                          display={false}
+                          math="S_{tt} = \dfrac{P_{tt}}{\cos\varphi}"
+                        />
                       </li>
-                      <li>
-                        • P<sub>kđ</sub> = K<sub>kđ</sub> · ΣP<sub>i</sub>
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula
+                          display={false}
+                          math="P_{kđ} = K_{kđ} \displaystyle\sum_{i=1}^{n} P_i"
+                        />
                       </li>
-                      <li>
-                        • K<sub>đp</sub>: Hệ số dự phòng, thường lấy từ 1.1 đến
-                        1.25
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula
+                          display={false}
+                          math="S_{k\text{đ}} = \dfrac{P_{k\text{đ}}}{\cos\varphi}"
+                        />
+                      </li>
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula display={false} math="K_{\mathrm{dp}}" />
+                        <span>
+                          : Hệ số dự phòng, thường lấy từ 1,1 đến 1,25
+                        </span>
+                      </li>
+                      <li className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span>•</span>
+                        <KatexFormula display={false} math="\cos\varphi" />
+                        <span>
+                          : Hệ số công suất trung bình của lưới điện PCCC
+                        </span>
                       </li>
                     </ul>
                   </div>
@@ -616,44 +694,25 @@ export default function PcccElectricClient({ userEmail }: Props) {
               )}
             </Card>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card
-                title={
-                  <>
-                    Nhóm phụ tải cấp nước chữa cháy chính (P<sub>B</sub>)
-                  </>
+            <Card
+              title={
+                <span className="inline-flex flex-wrap items-center gap-x-1">
+                  Danh mục thiết bị phụ tải
+                </span>
+              }
+              icon="🚒"
+            >
+              <LoadsTable<NamedLoad>
+                items={inputs.pumpsMain}
+                onChange={(pumpsMain) =>
+                  setInputs((s) => ({ ...s, pumpsMain }))
                 }
-                icon="🚒"
-              >
-                <LoadsTable<NamedLoad>
-                  items={inputs.pumpsMain}
-                  onChange={(pumpsMain) =>
-                    setInputs((s) => ({ ...s, pumpsMain }))
-                  }
-                  addLabel="Thiết bị"
-                />
-              </Card>
-
-              <Card
-                title={
-                  <>
-                    Nhóm thiết bị phụ tải báo cháy (P<sub>BC</sub>)
-                  </>
-                }
-                icon="💡"
-              >
-                <LoadsTable<NamedLoad>
-                  items={inputs.otherLoads}
-                  onChange={(otherLoads) =>
-                    setInputs((s) => ({ ...s, otherLoads }))
-                  }
-                  addLabel="Thiết bị"
-                />
-              </Card>
-            </div>
+                addLabel="Thiết bị"
+              />
+            </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card title="Bơm dự phòng (để tính máy phát)" icon="⚙️">
+              <Card title="Bơm chữa cháy điện dự phòng" icon="⚙️">
                 <BackupTable
                   items={inputs.backupPumps}
                   onChange={(backupPumps) =>
@@ -666,17 +725,6 @@ export default function PcccElectricClient({ userEmail }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
                     <div className="text-xs font-medium text-zinc-700">
-                      K<sub>đt</sub>
-                    </div>
-                    <NumberInput
-                      value={inputs.kdt}
-                      step={0.01}
-                      min={0}
-                      onChange={(kdt) => setInputs((s) => ({ ...s, kdt }))}
-                    />
-                  </label>
-                  <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">
                       K<sub>yc</sub>
                     </div>
                     <NumberInput
@@ -685,6 +733,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                       min={0}
                       onChange={(kyc) => setInputs((s) => ({ ...s, kyc }))}
                     />
+                    <div className="mt-1 text-[11px] text-zinc-500">
+                      Hệ số yêu cầu phụ tải
+                    </div>
                   </label>
                   <label className="block">
                     <div className="text-xs font-medium text-zinc-700">
@@ -697,8 +748,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
                       onChange={(kkD) => setInputs((s) => ({ ...s, kkD }))}
                     />
                     <div className="mt-1 text-[11px] text-zinc-500">
-                      Dùng cho P<sub>tt</sub> (MBA) và P<sub>kđ</sub> (bơm dự
-                      phòng)
+                      Hệ số khởi động
                     </div>
                   </label>
                   <label className="block">
@@ -756,6 +806,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     type="button"
                     className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100"
                     onClick={() => {
+                      clearCalculateErrorDismissTimer();
                       setInputs(resetInputs);
                       setResults(calcPcccElectric(resetInputs));
                       setCalculateError(null);
@@ -781,47 +832,51 @@ export default function PcccElectricClient({ userEmail }: Props) {
 
             <Card title="Kết quả tính toán" icon="✅">
               <div className="grid gap-3 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-xs text-zinc-500">
-                    P<sub>B</sub> – Nhóm phụ tải cấp nước chữa cháy chính
-                  </div>
-                  <div className="text-2xl font-semibold tracking-tight">
-                    {formatCalcNumber(results.pb)}{" "}
-                    <span className="text-base font-medium">kW</span>
-                  </div>
-                </div>
-                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-xs text-zinc-500">
-                    P<sub>BC</sub> – Nhóm thiết bị phụ tải khác
-                  </div>
-                  <div className="text-2xl font-semibold tracking-tight">
-                    {formatCalcNumber(results.pkhac)}{" "}
-                    <span className="text-base font-medium">kW</span>
-                  </div>
-                </div>
-                <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3">
-                  <div className="text-xs text-zinc-500">
-                    P<sub>tt</sub> – Tổng phụ tải tính toán (MBA)
-                  </div>
-                  <div className="mt-0.5 text-[11px] leading-snug text-zinc-500">
-                    K<sub>đt</sub> · (P<sub>B</sub> · K<sub>kđ</sub> + P
-                    <sub>BC</sub>) —{" "}
-                    <span className="font-medium text-zinc-600">không</span> gồm
-                    bơm dự phòng
+                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
+                  <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+                    <KatexFormula
+                      display={false}
+                      math="P_{tt}"
+                      className="!inline"
+                    />
+                    <span>– Công suất phụ tải bơm nước chữa cháy</span>
                   </div>
                   <div className="mt-1 text-2xl font-semibold tracking-tight">
                     {formatCalcNumber(results.ptt)}{" "}
                     <span className="text-base font-medium">kW</span>
                   </div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-xs text-zinc-500">
-                    S<sub>MBA</sub> – Công suất biểu kiến tối thiểu
+                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
+                  <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+                    <KatexFormula
+                      display={false}
+                      math="S_{\mathrm{MBA}}"
+                      className="!inline"
+                    />
+                    <span>– Công suất biểu kiến máy biến áp</span>
                   </div>
                   <div className="text-2xl font-semibold tracking-tight">
                     {formatCalcNumber(results.smba)}{" "}
                     <span className="text-base font-medium">kVA</span>
                   </div>
+                  {results.smba === 0 ? (
+                    <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+                      Để tính công suất biểu kiến máy áp, hãy thêm thiết bị phụ
+                      tải.
+                    </div>
+                  ) : (
+                    <p className="mt-3 border-t border-slate-100 pt-3 text-sm leading-relaxed text-slate-800">
+                      <span className="font-semibold text-slate-900">
+                        Kết luận:
+                      </span>{" "}
+                      Để đảm bảo yêu cầu theo quy định, công trình phải sử dụng
+                      máy biến áp có công suất tối thiểu là{" "}
+                      <span className="font-semibold tabular-nums text-blue-800">
+                        {formatCalcNumber(results.smba)} kVA
+                      </span>
+                      .
+                    </p>
+                  )}
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
@@ -830,40 +885,37 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   </div>
                   <div className="mt-3 grid gap-2 text-sm text-zinc-700">
                     <div className="flex items-center justify-between">
-                      <span>
-                        P<sub>tt</sub>
-                      </span>
+                      <KatexFormula display={false} math="P_{tt}" />
                       <span className="font-mono">
                         {formatCalcNumber(results.pttBackup)} kW
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>
-                        P<sub>kđ</sub>
-                      </span>
+                      <KatexFormula display={false} math="P_{k\text{đ}}" />
                       <span className="font-mono">
                         {formatCalcNumber(results.pkd)} kW
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>
-                        S<sub>tt</sub>
-                      </span>
+                      <KatexFormula display={false} math="S_{tt}" />
                       <span className="font-mono">
                         {formatCalcNumber(results.stt)} kVA
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>
-                        S<sub>kđ</sub>
-                      </span>
+                      <KatexFormula display={false} math="S_{k\text{đ}}" />
                       <span className="font-mono">
                         {formatCalcNumber(results.skd)} kVA
                       </span>
                     </div>
                     <div className="flex items-center justify-between border-t pt-2">
-                      <span className="font-medium">
-                        S<sub>MPĐ</sub> tối thiểu
+                      <span className="inline-flex items-baseline gap-x-1 font-medium">
+                        <KatexFormula
+                          display={false}
+                          math="S_{\text{MPĐ}}"
+                          className="!inline"
+                        />
+                        <span>tối thiểu</span>
                       </span>
                       <span className="font-mono font-semibold">
                         {formatCalcNumber(results.smpd)} kVA
@@ -871,12 +923,23 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   </div>
 
-                  {inputs.backupPumps.length === 0 ? (
+                  {results.smpd === 0 ? (
                     <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
-                      Để tính máy phát điện, hãy thêm bơm dự phòng ở danh sách
-                      bên trái.
+                      Để tính máy phát điện, hãy thêm bơm dự phòng.
                     </div>
-                  ) : null}
+                  ) : (
+                    <p className="mt-3 border-t border-slate-100 pt-3 text-sm leading-relaxed text-slate-800">
+                      <span className="font-semibold text-slate-900">
+                        Kết luận:
+                      </span>{" "}
+                      Để đảm bảo theo quy định, máy phát điện dự phòng phải có
+                      công suất tối thiểu{" "}
+                      <span className="font-semibold tabular-nums text-blue-800">
+                        {formatCalcNumber(results.smpd)} kVA
+                      </span>
+                      .
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>

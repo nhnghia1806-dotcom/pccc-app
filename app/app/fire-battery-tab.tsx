@@ -5,6 +5,7 @@ import type {
   FireBatteryInputs,
   FireBatteryResults,
 } from "@/domain/fire-battery/models";
+import { KatexFormula } from "@/components/katex-formula";
 import { formatCalcNumber } from "@/domain/pccc-electric/format-calc-number";
 
 function NumberInput({
@@ -116,7 +117,9 @@ function EditableDeviceTable({
               <th className="px-3 py-2 font-medium">Tên</th>
               <th className="px-3 py-2 font-medium">Số lượng</th>
               <th className="px-3 py-2 font-medium">
-                Dòng tiêu thụ mỗi thiết bị (mA)
+                <span className="inline-flex flex-wrap items-baseline gap-x-1">
+                  Dòng tiêu thụ mỗi thiết bị <span>(mA)</span>
+                </span>
               </th>
               <th className="px-3 py-2 font-medium">Dòng tiêu thụ (mA)</th>
               <th className="px-3 py-2 font-medium">Trạng thái</th>
@@ -138,7 +141,7 @@ function EditableDeviceTable({
                     key={idx}
                     className="border-t border-slate-100 hover:bg-slate-50/80"
                   >
-                    <td className="px-3 py-2 text-slate-600">{idx + 1}</td>
+                    <td className="px-5 py-2 text-left">{idx + 1}</td>
                     <td className="min-w-0 px-3 py-2">
                       <input
                         className="w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
@@ -169,7 +172,7 @@ function EditableDeviceTable({
                         onChange={(m) => updateRow(idx, { mAEach: m })}
                       />
                     </td>
-                    <td className="px-3 py-2 font-mono text-slate-700">
+                    <td className="px-3 py-2 font-sans tabular-nums text-slate-700">
                       {formatCalcNumber(line)}
                     </td>
                     <td className="px-3 py-2 text-slate-600">{statusLabel}</td>
@@ -194,7 +197,7 @@ function EditableDeviceTable({
                 <td className="px-3 py-2" colSpan={4}>
                   Tổng dòng tiêu thụ (mA)
                 </td>
-                <td className="px-3 py-2 font-mono">
+                <td className="px-3 py-2 font-sans tabular-nums">
                   {formatCalcNumber(totalMA)}
                 </td>
                 <td className="px-3 py-2" colSpan={2} />
@@ -239,7 +242,13 @@ export default function FireBatteryTab({
   const [formulaPanelOpen, setFormulaPanelOpen] = useState(true);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
+      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <h2 className="text-center text-base font-bold uppercase leading-snug tracking-tight text-slate-800 sm:text-lg">
+          Bảng tính nguồn cấp điện cho hệ thống báo cháy tự động
+        </h2>
+      </div>
+
       <Card
         title="Công thức tính toán"
         icon="📘"
@@ -259,108 +268,170 @@ export default function FireBatteryTab({
           <div className="space-y-3 text-sm text-zinc-700">
             <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
               <div className="font-bold">
-                B1 — Dòng điện tổng trạng thái tĩnh I<sub>Q</sub>
+                1) Dòng điện tổng trạng thái tĩnh{" "}
+                <KatexFormula display={false} math="I_Q" className="!inline" />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                I<sub>Q</sub> = ΣI<sub>i</sub>
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                <KatexFormula math="I_{Q} = \displaystyle\sum_{i=1}^{n} I_i" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
-                <li>
-                  • I<sub>i</sub> = I<sub>tt</sub> × Số lượng
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula
+                    display={false}
+                    math="I_i = I_{tt} \cdot \text{Số lượng}"
+                  />
                 </li>
               </ul>
             </div>
 
             <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
               <div className="font-bold">
-                B2 — Dòng điện tổng trạng thái báo cháy I<sub>A</sub>
+                2) Dòng điện tổng trạng thái báo cháy{" "}
+                <KatexFormula display={false} math="I_A" className="!inline" />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                I<sub>A</sub> = ΣI<sub>i</sub>
-              </div>
-              <ul className="space-y-1 text-sm text-slate-700">
-                <li>
-                  • I<sub>i</sub> = I<sub>tt</sub> × Số lượng
-                </li>
-              </ul>
-            </div>
-
-            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-              <div className="font-bold">B3 — Dung lượng ắc quy C20</div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                C<sub>20</sub> = 1,25 × [(I<sub>Q</sub> × T<sub>Q</sub>) + F
-                <sub>C</sub> × (I<sub>A</sub> × T<sub>A</sub>)]
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                <KatexFormula math="I_{A} = \displaystyle\sum_{i=1}^{n} I_i" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
-                <li>
-                  • C<sub>20</sub>: Dung lượng ắc quy
-                </li>
-                <li>• 1,25: Hệ số gây hư hỏng ắc quy</li>
-                <li>
-                  • I<sub>Q</sub>: Dòng điện tổng ở tải trọng tĩnh
-                </li>
-                <li>
-                  • T<sub>Q</sub>: Thời gian của nguồn điện dự phòng ở tải trọng
-                  tĩnh (thường là 24 h)
-                </li>
-                <li>
-                  • F<sub>C</sub>: Hệ số giảm dung lượng của ắc quy ở I
-                  <sub>A</sub>
-                </li>
-                <li>
-                  • I<sub>A</sub>: Dòng điện tổng ở điều kiện báo cháy
-                </li>
-                <li>
-                  • T<sub>A</sub>: Thời gian của nguồn điện dự phòng ở phụ tải
-                  toàn tải (thường là 0,5 h)
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula
+                    display={false}
+                    math="I_i = I_{tt} \cdot \text{Số lượng}"
+                  />
                 </li>
               </ul>
             </div>
 
             <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
               <div className="font-bold">
-                B4 — Dòng điện nạp tối thiểu I<sub>C</sub>
+                3) Dung lượng ắc quy{" "}
+                <KatexFormula
+                  display={false}
+                  math="C_{20}"
+                  className="!inline"
+                />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                I<sub>C</sub> = 1,25 × [(I<sub>Q</sub> × 5) + (I<sub>A</sub> ×
-                0,5)] / 24
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                <KatexFormula math="C_{20} = 1{,}25 \cdot \bigl[(I_Q \cdot T_Q) + F_C \cdot (I_A \cdot T_A)\bigr]" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
-                <li>
-                  • I<sub>C</sub>: Dòng điện nạp tối thiểu
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="1{,}25" />
+                  <span>: Hệ số gây hư hỏng ắc quy</span>
                 </li>
-                <li>
-                  • 1,25: Hệ số nâng thêm để tránh tổn thất trong quá trình nạp
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="I_Q" />
+                  <span>: Dòng điện tổng ở tải trọng tĩnh</span>
                 </li>
-                <li>
-                  • I<sub>Q</sub>: Dòng điện tổng ở tải trọng tĩnh
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="T_Q" />
+                  <span>
+                    : Thời gian của nguồn điện dự phòng ở tải trọng tĩnh (thường
+                    là 24 h)
+                  </span>
                 </li>
-
-                <li>
-                  • I<sub>A</sub>: Dòng điện tổng ở điều kiện báo cháy
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="F_C" />
+                  <span>
+                    : Hệ số giảm dung lượng của ắc quy ở{" "}
+                    <KatexFormula
+                      display={false}
+                      math="I_A"
+                      className="!inline"
+                    />
+                  </span>
                 </li>
-                <li>• 24: Thời gian nạp lại (giờ) Nạp trong vòng 24h</li>
-                <li>
-                  • 5 & 0.5: Thời gian ắc quy duy trì hệ thống báo cháy với tải
-                  trọng tĩnh bình thường (5h) và ở điều kiện báo cháy là 30 phút
-                  (0.5h)
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="I_A" />
+                  <span>: Dòng điện tổng ở điều kiện báo cháy</span>
+                </li>
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="T_A" />
+                  <span>
+                    : Thời gian của nguồn điện dự phòng ở phụ tải toàn tải
+                    (thường là 0,5 h)
+                  </span>
                 </li>
               </ul>
             </div>
 
             <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
               <div className="font-bold">
-                B5 — Dòng điện tổng nguồn I<sub>PSE</sub>
+                4) Dòng điện nạp tối thiểu{" "}
+                <KatexFormula display={false} math="I_C" className="!inline" />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
-                I<sub>PSE</sub> = I<sub>Q</sub> + I<sub>C</sub>
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                <KatexFormula math="I_C = \dfrac{1{,}25 \cdot \bigl[(I_Q \cdot 5) + (I_A \cdot 0{,}5)\bigr]}{24}" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
-                <li>
-                  • I<sub>Q</sub>: Dòng điện tổng ở tải trọng tĩnh
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="1{,}25" />
+                  <span>
+                    : Hệ số nâng thêm để tránh tổn thất trong quá trình nạp
+                  </span>
                 </li>
-                <li>
-                  • I<sub>C</sub>: Dòng điện nạp tối thiểu
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="I_Q" />
+                  <span>: Dòng điện tổng ở tải trọng tĩnh</span>
+                </li>
+
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="I_A" />
+                  <span>: Dòng điện tổng ở điều kiện báo cháy</span>
+                </li>
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="24" />
+                  <span>: Thời gian nạp lại (giờ) — nạp trong vòng 24h</span>
+                </li>
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <span className="inline-flex flex-wrap items-baseline gap-x-1">
+                    <KatexFormula display={false} math="5\ \text{h}" />
+                    <span className="text-slate-600">&</span>
+                    <KatexFormula display={false} math="0{,}5\ \text{h}" />
+                  </span>
+                  <span>
+                    : Thời gian ắc quy duy trì hệ thống báo cháy với tải trọng
+                    tĩnh bình thường và ở điều kiện báo cháy (30 phút)
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
+              <div className="font-bold">
+                5) Dòng điện tổng nguồn chính{" "}
+                <KatexFormula
+                  display={false}
+                  math="I_{\mathrm{PSE}}"
+                  className="!inline"
+                />
+              </div>
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                <KatexFormula math="I_{\mathrm{PSE}} = I_Q + I_C" />
+              </div>
+              <ul className="space-y-1 text-sm text-slate-700">
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="I_Q" />
+                  <span>: Dòng điện tổng trạng thái tĩnh</span>
+                </li>
+                <li className="flex flex-wrap items-baseline gap-x-1.5">
+                  <span>•</span>
+                  <KatexFormula display={false} math="I_C" />
+                  <span>: Dòng điện nạp tối thiểu</span>
                 </li>
               </ul>
             </div>
@@ -376,15 +447,16 @@ export default function FireBatteryTab({
 
       <div>
         <h2 className="text-lg font-bold text-slate-800">
-          Kiểm tra nguồn điện dự phòng
+          TÍNH TOÁN DUNG LƯỢNG ÁC QUY DỰ PHÒNG
         </h2>
       </div>
 
       <Card
         title={
-          <>
-            Dòng điện tiêu thụ tĩnh (I<sub>Q</sub>)
-          </>
+          <span className="inline-flex flex-wrap items-center gap-x-1">
+            Dòng điện tiêu thụ tĩnh (
+            <KatexFormula display={false} math="I_Q" className="!inline" />)
+          </span>
         }
         icon="🔋"
       >
@@ -399,9 +471,10 @@ export default function FireBatteryTab({
 
       <Card
         title={
-          <>
-            Dòng điện tiêu thụ khi báo cháy (I<sub>A</sub>)
-          </>
+          <span className="inline-flex flex-wrap items-center gap-x-1">
+            Dòng điện tiêu thụ khi báo cháy (
+            <KatexFormula display={false} math="I_A" className="!inline" />)
+          </span>
         }
         icon="🔔"
       >
@@ -415,10 +488,11 @@ export default function FireBatteryTab({
       </Card>
 
       <Card title="Tham số chung" icon="🔧">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="block">
-            <span className="text-xs font-medium text-slate-700">
-              T<sub>Q</sub> (h) — tải tĩnh
+            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-medium text-slate-700">
+              <KatexFormula display={false} math="T_Q" className="!inline" />
+              <span>(h) — Thời gian nguồn điện dự phòng tĩnh</span>
             </span>
             <NumberInput
               value={inputs.tqHours}
@@ -428,8 +502,9 @@ export default function FireBatteryTab({
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-slate-700">
-              T<sub>A</sub> (h) — báo cháy
+            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-medium text-slate-700">
+              <KatexFormula display={false} math="T_A" className="!inline" />
+              <span>(h) — Thời gian nguồn điện dự phòng phụ tải</span>
             </span>
             <NumberInput
               value={inputs.taHours}
@@ -439,25 +514,17 @@ export default function FireBatteryTab({
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-slate-700">
-              F<sub>C</sub> — hệ số giảm dung lượng (I<sub>A</sub>)
+            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-medium text-slate-700">
+              <KatexFormula display={false} math="F_C" className="!inline" />
+              <span>— Hệ số giảm dung lượng (</span>
+              <KatexFormula display={false} math="I_A" className="!inline" />
+              <span>)</span>
             </span>
             <NumberInput
               value={inputs.fc}
               min={0}
               step={0.01}
               onChange={(fc) => onChange({ ...inputs, fc })}
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium text-slate-700">
-              C20 lắp đặt (Ah) — B6
-            </span>
-            <NumberInput
-              value={inputs.ratedC20Ah}
-              min={0}
-              step={0.1}
-              onChange={(ratedC20Ah) => onChange({ ...inputs, ratedC20Ah })}
             />
           </label>
         </div>
@@ -486,84 +553,123 @@ export default function FireBatteryTab({
       </Card>
 
       <Card title="Kết quả tính toán" icon="✅">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="text-xs text-zinc-500">
-              I<sub>Q</sub> — Dòng tĩnh (A)
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+              <KatexFormula display={false} math="I_Q" className="!inline" />
+              <span>— Dòng tĩnh (A)</span>
             </div>
-            <div className="text-2xl font-semibold tracking-tight">
+            <div className="text-2xl font-semibold tabular-nums tracking-tight">
               {formatCalcNumber(r.iqA)}{" "}
               <span className="text-base font-medium">A</span>
             </div>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="text-xs text-zinc-500">
-              I<sub>A</sub> — Dòng báo cháy (A)
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+              <KatexFormula display={false} math="I_A" className="!inline" />
+              <span>— Dòng báo cháy (A)</span>
             </div>
-            <div className="text-2xl font-semibold tracking-tight">
+            <div className="text-2xl font-semibold tabular-nums tracking-tight">
               {formatCalcNumber(r.iaA)}{" "}
+              <span className="text-base font-medium">A</span>
+            </div>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+              <KatexFormula display={false} math="C_{20}" className="!inline" />
+              <span>— Dung lượng ác quy (Ah)</span>
+            </div>
+            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+              {formatCalcNumber(r.c20RequiredAh)}{" "}
+              <span className="text-base font-medium">Ah</span>
+            </div>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+              <KatexFormula display={false} math="I_C" className="!inline" />
+              <span>— Dòng nạp tối thiểu (A)</span>
+            </div>
+            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+              {formatCalcNumber(r.icA)}{" "}
+              <span className="text-base font-medium">A</span>
+            </div>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+              <KatexFormula
+                display={false}
+                math="I_{\mathrm{PSE}}"
+                className="!inline"
+              />
+              <span>— Dòng tổng nguồn (A)</span>
+            </div>
+            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+              {formatCalcNumber(r.ipseA)}{" "}
               <span className="text-base font-medium">A</span>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 space-y-3 rounded-lg border border-amber-100 bg-amber-50/50 px-3 py-3 text-sm text-slate-800">
-          <div>
-            <span className="font-semibold">B3.</span>{" "}
-            <span className="font-mono text-[13px]">
-              C<sub>20</sub> = 1,25 × [(I<sub>Q</sub> × T<sub>Q</sub>) + F
-              <sub>C</sub> × (I<sub>A</sub> × T<sub>A</sub>)]
-            </span>
-            <div className="mt-1 font-mono text-[13px]">
-              = {formatCalcNumber(r.c20RequiredAh)} Ah
-            </div>
+        {r.c20RequiredAh === 0 ? (
+          <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+            Để tính dung lượng ác quy dự phòng, hãy thêm thiết bị.
           </div>
-          <div>
-            <span className="font-semibold">B4.</span>{" "}
-            <span className="font-mono text-[13px]">
-              I<sub>C</sub> = 1,25 × [(I<sub>Q</sub> × 5) + (I<sub>A</sub> ×
-              0,5)] / 24
-            </span>
-            <div className="mt-1 text-xs text-slate-600">
-              Dòng nạp tối thiểu (phục hồi sau 5 h tĩnh + 30 phút báo cháy trong
-              24 h).
-            </div>
-            <div className="mt-1 font-mono text-[13px]">
-              = {formatCalcNumber(r.icA)} A
-            </div>
+        ) : (
+          <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
+            <div className="text-sm font-bold text-slate-800">Kết luận</div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-800">
+              Như vậy, theo kết quả tính toán, lựa chọn nguồn điện cho hệ thống
+              báo cháy như sau:
+            </p>
+            <ul className="mt-3 list-none space-y-3 text-sm leading-relaxed text-slate-800">
+              <li className="flex flex-wrap items-baseline gap-x-1 pl-0">
+                <span className="mr-1 font-semibold text-slate-900">+</span>
+                <span>
+                  Ắc quy dự phòng có dung lượng thấp nhất theo tính toán là{" "}
+                </span>
+                <KatexFormula
+                  display={false}
+                  math="C_{20}"
+                  className="!inline"
+                />
+                <span className="tabular-nums font-semibold text-slate-900">
+                  {" = "}
+                  {formatCalcNumber(r.c20RequiredAh)} Ah
+                </span>
+                <span>.</span>
+              </li>
+              <li className="flex flex-wrap items-baseline gap-x-1">
+                <span className="mr-1 font-semibold text-slate-900">+</span>
+                <span>
+                  Bộ cấp nguồn chính: Dòng điện nguồn chính theo tính toán
+                  là{" "}
+                </span>
+                <KatexFormula
+                  display={false}
+                  math="I_{\mathrm{PSE}}"
+                  className="!inline"
+                />
+                <span className="tabular-nums font-semibold text-slate-900">
+                  {" = "}
+                  {formatCalcNumber(r.ipseA)} A
+                </span>
+                <span>, dòng điện ở điều kiện báo cháy là </span>
+                <KatexFormula display={false} math="I_A" className="!inline" />
+                <span className="tabular-nums font-semibold text-slate-900">
+                  {" = "}
+                  {formatCalcNumber(r.iaA)} A
+                </span>
+                <span>, dòng điện nạp tối thiểu cho ắc quy là </span>
+                <KatexFormula display={false} math="I_C" className="!inline" />
+                <span className="tabular-nums font-semibold text-slate-900">
+                  {" = "}
+                  {formatCalcNumber(r.icA)} A
+                </span>
+                <span>.</span>
+              </li>
+            </ul>
           </div>
-          <div>
-            <span className="font-semibold">B5.</span>{" "}
-            <span className="font-mono text-[13px]">
-              I<sub>PSE</sub> = I<sub>Q</sub> + I<sub>C</sub>
-            </span>
-            <div className="mt-1 font-mono text-[13px]">
-              = {formatCalcNumber(r.ipseA)} A
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
-          <div className="text-sm font-bold text-slate-800">B6: Kết luận</div>
-          {inputs.ratedC20Ah <= 0 ? (
-            <p className="mt-2 text-sm text-slate-600">
-              Nhập <strong>C20 lắp đặt (Ah)</strong> ở Tham số chung rồi bấm{" "}
-              <strong>Tính toán</strong> để so sánh.
-            </p>
-          ) : r.batteryOk ? (
-            <p className="mt-2 text-sm font-semibold text-emerald-700">
-              Ắc quy <span className="underline">đảm bảo</span>: C20 lắp đặt ≥
-              C20 yêu cầu ({formatCalcNumber(inputs.ratedC20Ah)} ≥{" "}
-              {formatCalcNumber(r.c20RequiredAh)} Ah).
-            </p>
-          ) : (
-            <p className="mt-2 text-sm font-semibold text-rose-700">
-              Ắc quy <span className="underline">không đảm bảo</span>: C20 lắp
-              đặt &lt; C20 yêu cầu ({formatCalcNumber(inputs.ratedC20Ah)} &lt;{" "}
-              {formatCalcNumber(r.c20RequiredAh)} Ah).
-            </p>
-          )}
-        </div>
+        )}
       </Card>
     </div>
   );

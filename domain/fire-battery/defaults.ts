@@ -25,7 +25,6 @@ export function createDefaultFireBatteryInputs(): FireBatteryInputs {
     tqHours: 24,
     taHours: 0.5,
     fc: 2,
-    ratedC20Ah: 0,
   };
 }
 
@@ -48,9 +47,5 @@ export function normalizeFireBatteryInputs(raw: unknown): FireBatteryInputs {
     taHours:
       typeof o.taHours === "number" && Number.isFinite(o.taHours) ? o.taHours : 0.5,
     fc: typeof o.fc === "number" && Number.isFinite(o.fc) ? o.fc : 1,
-    ratedC20Ah:
-      typeof o.ratedC20Ah === "number" && Number.isFinite(o.ratedC20Ah)
-        ? o.ratedC20Ah
-        : 0,
   };
 }

@@ -1,17 +1,20 @@
 import type { Inputs } from "./models";
 
 const electricDefaults: Inputs = {
-  kdt: 1,
   kyc: 1,
-  kkD: 1.3,
+  kkD: 1,
   cosPhi: 0.8,
   kdp: 1.2,
   pumpsMain: [],
-  otherLoads: [],
   backupPumps: [],
 };
 
-/** Gộp dữ liệu điện PCCC đã lưu với mặc định (migration kkD từng dòng cũ). */
+function num(raw: Partial<Inputs>, key: keyof Inputs, fallback: number): number {
+  const v = raw[key];
+  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+}
+
+/** Gộp dữ liệu điện PCCC đã lưu với mặc định (migration kkD từng dòng cũ). Bỏ otherLoads / kdt cũ nếu có trong JSON. */
 export function normalizeElectricInputs(raw: Partial<Inputs> & Record<string, unknown>): Inputs {
   const legacyKkD =
     typeof raw.kkD === "number" && Number.isFinite(raw.kkD)
@@ -24,15 +27,11 @@ export function normalizeElectricInputs(raw: Partial<Inputs> & Record<string, un
         })();
 
   return {
-    ...electricDefaults,
-    ...raw,
+    kyc: num(raw, "kyc", electricDefaults.kyc),
     kkD: legacyKkD,
+    cosPhi: num(raw, "cosPhi", electricDefaults.cosPhi),
+    kdp: num(raw, "kdp", electricDefaults.kdp),
     pumpsMain: (raw.pumpsMain ?? []).map((x) => ({
-      ...x,
-      quantity:
-        typeof x.quantity === "number" && Number.isFinite(x.quantity) ? x.quantity : 1,
-    })),
-    otherLoads: (raw.otherLoads ?? []).map((x) => ({
       ...x,
       quantity:
         typeof x.quantity === "number" && Number.isFinite(x.quantity) ? x.quantity : 1,

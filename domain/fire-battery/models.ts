@@ -14,8 +14,6 @@ export type FireBatteryInputs = {
   taHours: number;
   /** F_C — hệ số giảm dung lượng ắc quy ở I_A */
   fc: number;
-  /** Dung lượng ắc quy lắp đặt C20 (Ah) — để so sánh B6 */
-  ratedC20Ah: number;
 };
 
 export type FireBatteryRowResult = FireBatteryRow & {
@@ -37,6 +35,4 @@ export type FireBatteryResults = {
   icA: number;
   /** I_PSE (A) */
   ipseA: number;
-  /** Ắc quy đủ nếu dung lượng lắp đặt ≥ C20 yêu cầu */
-  batteryOk: boolean | null;
 };

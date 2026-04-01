@@ -15,18 +15,16 @@ function safeDiv(a: number, b: number) {
 
 export function calcPcccElectric(inputs: Inputs): Results {
   const kyc = Number.isFinite(inputs.kyc) ? inputs.kyc : 1;
-  const kdt = Number.isFinite(inputs.kdt) ? inputs.kdt : 1;
-  const kkD = Number.isFinite(inputs.kkD) ? inputs.kkD : 1.3;
+  const kkD = Number.isFinite(inputs.kkD) ? inputs.kkD : 1;
   const cosPhi = Number.isFinite(inputs.cosPhi) ? inputs.cosPhi : 0.8;
   const kdp = Number.isFinite(inputs.kdp) ? inputs.kdp : 1.2;
 
-  const pb = kyc * sumKw(inputs.pumpsMain);
-  const pkhac = kyc * sumKw(inputs.otherLoads);
+  const sumPi = sumKw(inputs.pumpsMain);
   const pBackup = kyc * sumKw(inputs.backupPumps);
-  /** Ptt tổng cho MBA — không gồm bơm dự phòng */
-  const ptt = kdt * (pb * kkD + pkhac);
-  /** Ptt riêng nhóm bơm DP — khác `ptt` */
-  const pttBackup = kdt * pBackup;
+  /** P_tt = K_yc · Σ P_i — không gồm bơm dự phòng */
+  const ptt = kyc * sumPi;
+  /** P_tt nhóm bơm DP: Kyc · Σ P_i — khác `ptt` (MBA) */
+  const pttBackup = pBackup;
 
   const smba = safeDiv(ptt, cosPhi);
 
@@ -38,8 +36,7 @@ export function calcPcccElectric(inputs: Inputs): Results {
   const smpd = Math.max(stt, skd) * kdp;
 
   return {
-    pb,
-    pkhac,
+    sumPi,
     pttBackup,
     ptt,
     smba,

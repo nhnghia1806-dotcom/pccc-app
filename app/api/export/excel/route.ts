@@ -49,15 +49,13 @@ export async function POST() {
   ws.addRow([]);
 
   ws.addRow(["Tham số"]);
-  ws.addRow(["Kđt", inputs.kdt]);
   ws.addRow(["Kyc", inputs.kyc]);
   ws.addRow(["Kkđ", inputs.kkD]);
   ws.addRow(["cosφ", inputs.cosPhi]);
   ws.addRow(["kdp", inputs.kdp]);
   ws.addRow([]);
 
-  sheetAddLoads(ws, "Nhóm bơm chữa cháy chính (PB)", inputs.pumpsMain);
-  sheetAddLoads(ws, "Nhóm thiết bị khác (PBC)", inputs.otherLoads);
+  sheetAddLoads(ws, "Danh mục thiết bị (Σ Pi)", inputs.pumpsMain);
 
   ws.addRow(["Bơm dự phòng (máy phát)"]);
   ws.addRow(["#", "Tên", "Công suất định mức (KW)", "Số lượng"]);
@@ -72,9 +70,8 @@ export async function POST() {
   ws.addRow([]);
 
   ws.addRow(["Kết quả"]);
-  ws.addRow(["PB (kW)", results.pb]);
-  ws.addRow(["PKHÁC (kW)", results.pkhac]);
-  ws.addRow(["Ptt tổng — MBA: Kđt·(PB·Kkđ+PBC) (kW)", results.ptt]);
+  ws.addRow(["Σ Pi (kW)", results.sumPi]);
+  ws.addRow(["Ptt — MBA: Kyc·ΣPi (kW)", results.ptt]);
   ws.addRow(["SMBA (kVA)", results.smba]);
   ws.addRow(["Ptt nhóm bơm dự phòng (khác Ptt tổng) (kW)", results.pttBackup]);
   ws.addRow(["Pkđ (kW)", results.pkd]);

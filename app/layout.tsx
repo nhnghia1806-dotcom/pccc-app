@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { Providers } from "./providers";
 
-const beVietnam = Be_Vietnam_Pro({
-  variable: "--font-be-vietnam",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${beVietnam.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

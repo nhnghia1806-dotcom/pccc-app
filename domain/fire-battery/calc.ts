@@ -35,9 +35,6 @@ export function calcFireBattery(inputs: FireBatteryInputs): FireBatteryResults {
 
   const ipseA = iqA + icA;
 
-  const rated = Number.isFinite(inputs.ratedC20Ah) ? inputs.ratedC20Ah : 0;
-  const batteryOk = rated > 0 ? rated + 1e-9 >= c20RequiredAh : null;
-
   return {
     staticRows,
     alarmRows,
@@ -48,6 +45,5 @@ export function calcFireBattery(inputs: FireBatteryInputs): FireBatteryResults {
     c20RequiredAh,
     icA,
     ipseA,
-    batteryOk,
   };
 }

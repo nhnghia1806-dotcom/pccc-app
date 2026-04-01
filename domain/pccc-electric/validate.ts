@@ -17,13 +17,6 @@ export function validateInputs(i: Inputs): Warning[] {
     });
   }
 
-  if (i.kdt !== 1) {
-    w.push({
-      code: "kdt_not_1",
-      message: "Theo mô tả hiện tại, Kđt = 1 cho phụ tải PCCC.",
-    });
-  }
-
   if (i.kyc !== 1) {
     w.push({
       code: "kyc_not_1",

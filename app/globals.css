@@ -8,7 +8,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-be-vietnam);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -23,4 +23,9 @@ body {
   background: #f3f6fb;
   color: #1f2a37;
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* KaTeX: follow parent text color (panels dùng text-blue-800 / zinc-500, v.v.) */
+.katex {
+  color: inherit;
 }
