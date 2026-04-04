@@ -12,8 +12,8 @@
   "dependencies": {
     "@prisma/client": "6.19.2",
     "bcrypt": "^6.0.0",
+    "docx": "^9.6.1",
     "effect": "3.18.4",
-    "exceljs": "^4.4.0",
     "katex": "^0.16.21",
     "next": "16.2.1",
     "next-auth": "^4.24.13",

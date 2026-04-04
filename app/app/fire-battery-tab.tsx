@@ -243,12 +243,6 @@ export default function FireBatteryTab({
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <h2 className="text-center text-base font-bold uppercase leading-snug tracking-tight text-slate-800 sm:text-lg">
-          Bảng tính nguồn cấp điện cho hệ thống báo cháy tự động
-        </h2>
-      </div>
-
       <Card
         title="Công thức tính toán"
         icon="📘"

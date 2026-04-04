@@ -2,7 +2,12 @@
 
 import { signOut } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { parseAppSavedJson, toAppSavedJson } from "@/domain/app-saved";
+import {
+  createDefaultProjectMeta,
+  parseAppSavedJson,
+  toAppSavedJson,
+  type ProjectMeta,
+} from "@/domain/app-saved";
 import type {
   BackupPump,
   Inputs,
@@ -62,6 +67,38 @@ function Card({
       </div>
       <div className="p-4">{children}</div>
     </section>
+  );
+}
+
+function ProjectMetaCard({
+  value,
+  onChange,
+}: {
+  value: ProjectMeta;
+  onChange: (next: ProjectMeta) => void;
+}) {
+  const row = (label: string, key: keyof ProjectMeta) => (
+    <label className="block min-w-0">
+      <div className="text-xs font-medium text-zinc-700">{label}</div>
+      <input
+        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
+        value={value[key]}
+        onChange={(e) => onChange({ ...value, [key]: e.target.value })}
+        type="text"
+        autoComplete="off"
+      />
+    </label>
+  );
+
+  return (
+    <Card title="Thông tin công trình" icon="📋">
+      <div className="grid gap-3 sm:grid-cols-2 font-medium">
+        {row("Công trình:", "congTrinh")}
+        {row("Địa điểm:", "diaDiem")}
+        {row("Chủ đầu tư:", "chuDauTu")}
+        {row("Đơn vị tư vấn thiết kế:", "donViTuVanThietKe")}
+      </div>
+    </Card>
   );
 }
 
@@ -330,6 +367,9 @@ function BackupTable({
 
 export default function PcccElectricClient({ userEmail }: Props) {
   const [tab, setTab] = useState<"electric" | "fireBattery">("electric");
+  const [projectMeta, setProjectMeta] = useState<ProjectMeta>(() =>
+    createDefaultProjectMeta(),
+  );
   const [inputs, setInputs] = useState<Inputs>(defaultInputs);
   const [fireBattery, setFireBattery] = useState(
     createDefaultFireBatteryInputs,
@@ -395,6 +435,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
         if (alive && j.inputs) {
           const parsed = parseAppSavedJson(j.inputs);
           if (parsed) {
+            setProjectMeta(parsed.projectMeta);
             setInputs(parsed.electric);
             setFireBattery(parsed.fireBattery);
             setFireBatteryResults(calcFireBattery(parsed.fireBattery));
@@ -420,7 +461,11 @@ export default function PcccElectricClient({ userEmail }: Props) {
           method: "PUT",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            inputs: toAppSavedJson({ electric: inputs, fireBattery }),
+            inputs: toAppSavedJson({
+              electric: inputs,
+              fireBattery,
+              projectMeta,
+            }),
           }),
         });
         setSaveStatus("saved");
@@ -433,7 +478,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [inputs, fireBattery]);
+  }, [inputs, fireBattery, projectMeta]);
 
   useEffect(() => {
     return () => {
@@ -446,14 +491,14 @@ export default function PcccElectricClient({ userEmail }: Props) {
     };
   }, []);
 
-  async function exportExcel() {
-    const res = await fetch("/api/export/excel", { method: "POST" });
+  async function exportWord() {
+    const res = await fetch("/api/export/word", { method: "POST" });
     if (!res.ok) return;
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "pccc-dien.xlsx";
+    a.download = "bang-tinh-tram-bom-pccc.docx";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -461,9 +506,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
   function handleCalculate() {
     const allPumps = [...inputs.pumpsMain, ...inputs.backupPumps];
     if (allPumps.length === 0) {
-      setTransientCalculateError(
-        "Vui lòng thêm ít nhất một thiết bị/bơm.",
-      );
+      setTransientCalculateError("Vui lòng thêm ít nhất một thiết bị/bơm.");
       return;
     }
 
@@ -557,6 +600,10 @@ export default function PcccElectricClient({ userEmail }: Props) {
           </div>
         </div>
 
+        <div className="mb-6">
+          <ProjectMetaCard value={projectMeta} onChange={setProjectMeta} />
+        </div>
+
         {tab === "fireBattery" ? (
           <FireBatteryTab
             inputs={fireBattery}
@@ -636,29 +683,18 @@ export default function PcccElectricClient({ userEmail }: Props) {
                       3) Công suất máy phát điện dự phòng (khi sử dụng bơm chữa
                       cháy dự phòng điện)
                     </div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                    <div className="mb-3 space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                      <KatexFormula math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i" />
+                      <KatexFormula math="P_{kđ} = K_{kđ} \displaystyle\sum_{i=1}^{n} P_i" />
                       <KatexFormula math="S_{\text{MPĐ}} \geq \max(S_{tt},\, S_{k\text{đ}}) \cdot k_{\mathrm{dp}}" />
+                      <KatexFormula math="\Leftrightarrow\; S_{\text{MPĐ}} \geq \max\left(\dfrac{P_{tt}}{\cos\varphi},\,\dfrac{P_{k\text{đ}}}{\cos\varphi}\right) \cdot k_{\mathrm{dp}}" />
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
                         <span>•</span>
                         <KatexFormula
                           display={false}
-                          math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i"
-                        />
-                      </li>
-                      <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
-                        <KatexFormula
-                          display={false}
                           math="S_{tt} = \dfrac{P_{tt}}{\cos\varphi}"
-                        />
-                      </li>
-                      <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
-                        <KatexFormula
-                          display={false}
-                          math="P_{kđ} = K_{kđ} \displaystyle\sum_{i=1}^{n} P_i"
                         />
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
@@ -817,9 +853,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   <button
                     type="button"
                     className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                    onClick={exportExcel}
+                    onClick={exportWord}
                   >
-                    Xuất Excel
+                    Xuất Word
                   </button>
                 </div>
                 {calculateError ? (
