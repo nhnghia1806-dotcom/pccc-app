@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -44,6 +45,12 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-sm">
         <div className="mb-6">
+          <Link
+            href="/"
+            className="mb-3 inline-block text-sm text-zinc-500 hover:text-zinc-800"
+          >
+            ← Về trang giới thiệu
+          </Link>
           <h1 className="text-xl font-semibold tracking-tight">Đăng ký</h1>
           <p className="text-sm text-zinc-500">
             Tạo tài khoản để lưu dữ liệu nhập và xuất báo cáo.
@@ -96,9 +103,12 @@ export default function RegisterPage() {
 
         <div className="mt-4 text-sm text-zinc-600">
           Đã có tài khoản?{" "}
-          <a className="font-medium text-zinc-900 underline" href="/login">
+          <Link
+            className="font-medium text-zinc-900 underline"
+            href="/login"
+          >
             Đăng nhập
-          </a>
+          </Link>
         </div>
       </div>
     </div>

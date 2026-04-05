@@ -13,15 +13,21 @@ function NumberInput({
   onChange,
   step,
   min,
+  variant = "alarm",
 }: {
   value: number;
   onChange: (v: number) => void;
   step?: number;
   min?: number;
+  variant?: "neutral" | "alarm";
 }) {
+  const cls =
+    variant === "alarm"
+      ? "w-full rounded-lg border border-indigo-200/90 bg-white px-2 py-1.5 text-sm tabular-nums text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
+      : "w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm tabular-nums outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20";
   return (
     <input
-      className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
+      className={cls}
       type="number"
       value={Number.isFinite(value) ? value : 0}
       min={min}
@@ -38,33 +44,58 @@ function Card({
   children,
   icon,
   right,
-  iconTone = "amber",
+  variant = "alarm",
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   icon?: string;
   right?: React.ReactNode;
-  iconTone?: "amber" | "sky";
+  /** alarm: chủ đề báo cháy / TTBC (indigo–blue) */
+  variant?: "neutral" | "alarm";
 }) {
-  const iconBg = iconTone === "sky" ? "bg-sky-100" : "bg-amber-100";
+  const isAlarm = variant === "alarm";
+  if (!isAlarm) {
+    return (
+      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2">
+            {icon ? (
+              <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs">
+                {icon}
+              </span>
+            ) : null}
+            <div className="text-[15px] font-bold tracking-tight text-slate-800">
+              {title}
+            </div>
+          </div>
+          {right}
+        </div>
+        <div className="p-4">{children}</div>
+      </section>
+    );
+  }
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-        <div className="flex min-w-0 items-center gap-2">
+    <section className="overflow-hidden rounded-2xl border border-indigo-200/70 bg-white shadow-md shadow-indigo-900/10 ring-1 ring-indigo-900/5">
+      <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-800 via-blue-700 to-slate-800 px-4 py-3.5 text-white shadow-inner">
+        <div className="flex min-w-0 items-center gap-2.5">
           {icon ? (
-            <span
-              className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${iconBg}`}
-            >
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-base shadow-sm backdrop-blur-sm">
               {icon}
             </span>
           ) : null}
-          <div className="text-[15px] font-bold tracking-tight text-slate-800">
+          <div className="text-[15px] font-bold tracking-tight text-white drop-shadow-sm">
             {title}
           </div>
         </div>
-        {right}
+        {right ? (
+          <div className="[&_button]:rounded-lg [&_button]:border-white/35 [&_button]:bg-white/10 [&_button]:text-white [&_button]:hover:bg-white/20">
+            {right}
+          </div>
+        ) : null}
       </div>
-      <div className="p-4">{children}</div>
+      <div className="bg-gradient-to-b from-indigo-50/35 to-white p-4 sm:p-5">
+        {children}
+      </div>
     </section>
   );
 }
@@ -99,8 +130,10 @@ function EditableDeviceTable({
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-semibold text-slate-800">{title}</div>
-      <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <div className="text-sm font-bold uppercase tracking-wide text-indigo-950/90">
+        {title}
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-indigo-200/80 shadow-sm">
         <table className="w-full min-w-[720px] text-sm">
           <colgroup>
             <col className="w-[8%]" />
@@ -111,25 +144,28 @@ function EditableDeviceTable({
             <col className="w-[14%]" />
             <col className="w-11" />
           </colgroup>
-          <thead className="bg-slate-50 text-left text-slate-700">
+          <thead className="bg-gradient-to-r from-indigo-900 to-blue-800 text-left text-[11px] font-semibold uppercase tracking-wide text-white">
             <tr>
-              <th className="px-3 py-2 font-medium">STT</th>
-              <th className="px-3 py-2 font-medium">Tên</th>
-              <th className="px-3 py-2 font-medium">Số lượng</th>
-              <th className="px-3 py-2 font-medium">
+              <th className="px-3 py-2.5">STT</th>
+              <th className="px-3 py-2.5">Tên</th>
+              <th className="px-3 py-2.5">Số lượng</th>
+              <th className="px-3 py-2.5">
                 <span className="inline-flex flex-wrap items-baseline gap-x-1">
                   Dòng tiêu thụ mỗi thiết bị <span>(mA)</span>
                 </span>
               </th>
-              <th className="px-3 py-2 font-medium">Dòng tiêu thụ (mA)</th>
-              <th className="px-3 py-2 font-medium">Trạng thái</th>
-              <th className="px-1 py-2 font-medium" />
+              <th className="px-3 py-2.5">Dòng tiêu thụ (mA)</th>
+              <th className="px-3 py-2.5">Trạng thái</th>
+              <th className="px-1 py-2.5" />
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-zinc-500">
+                <td
+                  colSpan={7}
+                  className="px-3 py-8 text-center text-sm text-indigo-900/50"
+                >
                   Chưa có thiết bị.
                 </td>
               </tr>
@@ -139,12 +175,14 @@ function EditableDeviceTable({
                 return (
                   <tr
                     key={idx}
-                    className="border-t border-slate-100 hover:bg-slate-50/80"
+                    className="border-t border-indigo-100/80 transition hover:bg-violet-50/50"
                   >
-                    <td className="px-5 py-2 text-left">{idx + 1}</td>
+                    <td className="px-4 py-2.5 text-left text-sm font-semibold tabular-nums text-indigo-950/80">
+                      {idx + 1}
+                    </td>
                     <td className="min-w-0 px-3 py-2">
                       <input
-                        className="w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
+                        className="w-full rounded-lg border border-indigo-200/80 bg-white px-2 py-1.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                         value={r.name}
                         onChange={(e) =>
                           updateRow(idx, { name: e.target.value })
@@ -154,6 +192,7 @@ function EditableDeviceTable({
                     </td>
                     <td className="px-3 py-2">
                       <NumberInput
+                        variant="alarm"
                         value={r.quantity}
                         min={0}
                         step={1}
@@ -166,20 +205,23 @@ function EditableDeviceTable({
                     </td>
                     <td className="px-3 py-2">
                       <NumberInput
+                        variant="alarm"
                         value={r.mAEach}
                         min={0}
                         step={0.1}
                         onChange={(m) => updateRow(idx, { mAEach: m })}
                       />
                     </td>
-                    <td className="px-3 py-2 font-sans tabular-nums text-slate-700">
+                    <td className="px-3 py-2 font-sans tabular-nums font-medium text-indigo-950">
                       {formatCalcNumber(line)}
                     </td>
-                    <td className="px-3 py-2 text-slate-600">{statusLabel}</td>
+                    <td className="px-3 py-2 text-sm font-medium text-indigo-800/80">
+                      {statusLabel}
+                    </td>
                     <td className="px-1 py-2">
                       <button
                         type="button"
-                        className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
+                        className="rounded-lg border border-indigo-200/80 bg-white px-2 py-1.5 text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-800"
                         title="Xóa"
                         onClick={() =>
                           onRowsChange(rows.filter((_, i) => i !== idx))
@@ -193,14 +235,14 @@ function EditableDeviceTable({
               })
             )}
             {rows.length > 0 ? (
-              <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-medium">
-                <td className="px-3 py-2" colSpan={4}>
+              <tr className="border-t-2 border-indigo-200/90 bg-gradient-to-r from-indigo-50/90 to-blue-50/50 font-semibold text-indigo-950">
+                <td className="px-3 py-2.5" colSpan={4}>
                   Tổng dòng tiêu thụ (mA)
                 </td>
-                <td className="px-3 py-2 font-sans tabular-nums">
+                <td className="px-3 py-2.5 font-sans tabular-nums text-base">
                   {formatCalcNumber(totalMA)}
                 </td>
-                <td className="px-3 py-2" colSpan={2} />
+                <td className="px-3 py-2.5" colSpan={2} />
               </tr>
             ) : null}
           </tbody>
@@ -208,7 +250,7 @@ function EditableDeviceTable({
       </div>
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100"
+        className="inline-flex items-center gap-2 rounded-xl border-2 border-cyan-400/70 bg-gradient-to-r from-cyan-400 to-sky-500 px-4 py-2.5 text-sm font-bold text-indigo-950 shadow-sm shadow-cyan-900/15 transition hover:brightness-105 active:scale-[0.99]"
         onClick={() =>
           onRowsChange([
             ...rows,
@@ -228,6 +270,7 @@ type Props = {
   results: FireBatteryResults;
   onCalculate: () => void;
   onReset: () => void;
+  onExportWord?: () => void;
   calculateError: string | null;
 };
 
@@ -237,6 +280,7 @@ export default function FireBatteryTab({
   results: r,
   onCalculate,
   onReset,
+  onExportWord,
   calculateError,
 }: Props) {
   const [formulaPanelOpen, setFormulaPanelOpen] = useState(true);
@@ -246,11 +290,10 @@ export default function FireBatteryTab({
       <Card
         title="Công thức tính toán"
         icon="📘"
-        iconTone="sky"
         right={
           <button
             type="button"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-white/35 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
             onClick={() => setFormulaPanelOpen((v) => !v)}
             aria-expanded={formulaPanelOpen}
           >
@@ -259,18 +302,18 @@ export default function FireBatteryTab({
         }
       >
         {formulaPanelOpen ? (
-          <div className="space-y-3 text-sm text-zinc-700">
-            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-              <div className="font-bold">
+          <div className="space-y-3 text-sm text-zinc-800">
+            <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+              <div className="font-bold text-indigo-950">
                 1) Dòng điện tổng trạng thái tĩnh{" "}
                 <KatexFormula display={false} math="I_Q" className="!inline" />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+              <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_{Q} = \displaystyle\sum_{i=1}^{n} I_i" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula
                     display={false}
                     math="I_i = I_{tt} \cdot \text{Số lượng}"
@@ -279,17 +322,17 @@ export default function FireBatteryTab({
               </ul>
             </div>
 
-            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-              <div className="font-bold">
+            <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+              <div className="font-bold text-indigo-950">
                 2) Dòng điện tổng trạng thái báo cháy{" "}
                 <KatexFormula display={false} math="I_A" className="!inline" />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+              <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_{A} = \displaystyle\sum_{i=1}^{n} I_i" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula
                     display={false}
                     math="I_i = I_{tt} \cdot \text{Số lượng}"
@@ -298,8 +341,8 @@ export default function FireBatteryTab({
               </ul>
             </div>
 
-            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-              <div className="font-bold">
+            <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+              <div className="font-bold text-indigo-950">
                 3) Dung lượng ắc quy{" "}
                 <KatexFormula
                   display={false}
@@ -307,22 +350,22 @@ export default function FireBatteryTab({
                   className="!inline"
                 />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+              <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="C_{20} = 1{,}25 \cdot \bigl[(I_Q \cdot T_Q) + F_C \cdot (I_A \cdot T_A)\bigr]" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="1{,}25" />
                   <span>: Hệ số gây hư hỏng ắc quy</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_Q" />
                   <span>: Dòng điện tổng ở tải trọng tĩnh</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="T_Q" />
                   <span>
                     : Thời gian của nguồn điện dự phòng ở tải trọng tĩnh (thường
@@ -330,7 +373,7 @@ export default function FireBatteryTab({
                   </span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="F_C" />
                   <span>
                     : Hệ số giảm dung lượng của ắc quy ở{" "}
@@ -342,12 +385,12 @@ export default function FireBatteryTab({
                   </span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_A" />
                   <span>: Dòng điện tổng ở điều kiện báo cháy</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="T_A" />
                   <span>
                     : Thời gian của nguồn điện dự phòng ở phụ tải toàn tải
@@ -357,40 +400,40 @@ export default function FireBatteryTab({
               </ul>
             </div>
 
-            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-              <div className="font-bold">
+            <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+              <div className="font-bold text-indigo-950">
                 4) Dòng điện nạp tối thiểu{" "}
                 <KatexFormula display={false} math="I_C" className="!inline" />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+              <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_C = \dfrac{1{,}25 \cdot \bigl[(I_Q \cdot 5) + (I_A \cdot 0{,}5)\bigr]}{24}" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="1{,}25" />
                   <span>
                     : Hệ số nâng thêm để tránh tổn thất trong quá trình nạp
                   </span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_Q" />
                   <span>: Dòng điện tổng ở tải trọng tĩnh</span>
                 </li>
 
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_A" />
                   <span>: Dòng điện tổng ở điều kiện báo cháy</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="24" />
                   <span>: Thời gian nạp lại (giờ) — nạp trong vòng 24h</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <span className="inline-flex flex-wrap items-baseline gap-x-1">
                     <KatexFormula display={false} math="5\ \text{h}" />
                     <span className="text-slate-600">&</span>
@@ -404,8 +447,8 @@ export default function FireBatteryTab({
               </ul>
             </div>
 
-            <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-              <div className="font-bold">
+            <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+              <div className="font-bold text-indigo-950">
                 5) Dòng điện tổng nguồn chính{" "}
                 <KatexFormula
                   display={false}
@@ -413,17 +456,17 @@ export default function FireBatteryTab({
                   className="!inline"
                 />
               </div>
-              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+              <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_{\mathrm{PSE}} = I_Q + I_C" />
               </div>
               <ul className="space-y-1 text-sm text-slate-700">
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_Q" />
                   <span>: Dòng điện tổng trạng thái tĩnh</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span>•</span>
+                  <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_C" />
                   <span>: Dòng điện nạp tối thiểu</span>
                 </li>
@@ -431,17 +474,17 @@ export default function FireBatteryTab({
             </div>
           </div>
         ) : (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-600">
             Đang ẩn phần công thức. Bấm{" "}
-            <span className="font-medium text-slate-700">Mở</span> ở góc phải để
-            mở lại.
+            <span className="font-semibold text-indigo-800">Mở</span> ở góc phải
+            để mở lại.
           </p>
         )}
       </Card>
 
-      <div>
-        <h2 className="text-lg font-bold text-slate-800">
-          TÍNH TOÁN DUNG LƯỢNG ÁC QUY DỰ PHÒNG
+      <div className="rounded-xl border border-indigo-200/60 bg-gradient-to-r from-indigo-50/80 to-cyan-50/40 px-4 py-3">
+        <h2 className="text-balance text-base font-extrabold uppercase tracking-wide text-indigo-950 sm:text-lg">
+          Tính toán dung lượng ắc quy dự phòng
         </h2>
       </div>
 
@@ -484,7 +527,7 @@ export default function FireBatteryTab({
       <Card title="Tham số chung" icon="🔧">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="block">
-            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-medium text-slate-700">
+            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-900/85">
               <KatexFormula display={false} math="T_Q" className="!inline" />
               <span>(h) — Thời gian nguồn điện dự phòng tĩnh</span>
             </span>
@@ -496,7 +539,7 @@ export default function FireBatteryTab({
             />
           </label>
           <label className="block">
-            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-medium text-slate-700">
+            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-900/85">
               <KatexFormula display={false} math="T_A" className="!inline" />
               <span>(h) — Thời gian nguồn điện dự phòng phụ tải</span>
             </span>
@@ -508,7 +551,7 @@ export default function FireBatteryTab({
             />
           </label>
           <label className="block">
-            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-medium text-slate-700">
+            <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-900/85">
               <KatexFormula display={false} math="F_C" className="!inline" />
               <span>— Hệ số giảm dung lượng (</span>
               <KatexFormula display={false} math="I_A" className="!inline" />
@@ -526,18 +569,27 @@ export default function FireBatteryTab({
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-900/20 transition hover:brightness-105 active:scale-[0.99]"
             onClick={onCalculate}
           >
             ⚡ Tính toán
           </button>
           <button
             type="button"
-            className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+            className="rounded-xl border-2 border-rose-300/90 bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-800 shadow-sm transition hover:bg-rose-100 active:scale-[0.99]"
             onClick={onReset}
           >
             Reset
           </button>
+          {onExportWord ? (
+            <button
+              type="button"
+              className="rounded-xl border-2 border-indigo-200 bg-white px-4 py-2.5 text-sm font-bold text-indigo-900 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50/60 active:scale-[0.99]"
+              onClick={onExportWord}
+            >
+              Xuất Word
+            </button>
+          ) : null}
         </div>
         {calculateError ? (
           <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
@@ -548,48 +600,48 @@ export default function FireBatteryTab({
 
       <Card title="Kết quả tính toán" icon="✅">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+          <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50/40 px-4 py-3 shadow-sm shadow-indigo-900/5">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-800/75">
               <KatexFormula display={false} math="I_Q" className="!inline" />
               <span>— Dòng tĩnh (A)</span>
             </div>
-            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+            <div className="text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
               {formatCalcNumber(r.iqA)}{" "}
-              <span className="text-base font-medium">A</span>
+              <span className="text-base font-semibold text-indigo-800">A</span>
             </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+          <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50/40 px-4 py-3 shadow-sm shadow-indigo-900/5">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-800/75">
               <KatexFormula display={false} math="I_A" className="!inline" />
               <span>— Dòng báo cháy (A)</span>
             </div>
-            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+            <div className="text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
               {formatCalcNumber(r.iaA)}{" "}
-              <span className="text-base font-medium">A</span>
+              <span className="text-base font-semibold text-indigo-800">A</span>
             </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+          <div className="rounded-xl border border-cyan-200/90 bg-gradient-to-br from-cyan-50/50 to-white px-4 py-3 shadow-sm shadow-cyan-900/10 ring-1 ring-cyan-200/40">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-cyan-900/80">
               <KatexFormula display={false} math="C_{20}" className="!inline" />
               <span>— Dung lượng ác quy (Ah)</span>
             </div>
-            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+            <div className="text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
               {formatCalcNumber(r.c20RequiredAh)}{" "}
-              <span className="text-base font-medium">Ah</span>
+              <span className="text-base font-semibold text-cyan-900">Ah</span>
             </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+          <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50/40 px-4 py-3 shadow-sm shadow-indigo-900/5">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-800/75">
               <KatexFormula display={false} math="I_C" className="!inline" />
               <span>— Dòng nạp tối thiểu (A)</span>
             </div>
-            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+            <div className="text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
               {formatCalcNumber(r.icA)}{" "}
-              <span className="text-base font-medium">A</span>
+              <span className="text-base font-semibold text-indigo-800">A</span>
             </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+          <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50/40 px-4 py-3 shadow-sm shadow-indigo-900/5">
+            <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-800/75">
               <KatexFormula
                 display={false}
                 math="I_{\mathrm{PSE}}"
@@ -597,27 +649,29 @@ export default function FireBatteryTab({
               />
               <span>— Dòng tổng nguồn (A)</span>
             </div>
-            <div className="text-2xl font-semibold tabular-nums tracking-tight">
+            <div className="text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
               {formatCalcNumber(r.ipseA)}{" "}
-              <span className="text-base font-medium">A</span>
+              <span className="text-base font-semibold text-indigo-800">A</span>
             </div>
           </div>
         </div>
 
         {r.c20RequiredAh === 0 ? (
-          <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+          <div className="mt-3 rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2.5 text-sm text-indigo-900/85">
             Để tính dung lượng ác quy dự phòng, hãy thêm thiết bị.
           </div>
         ) : (
-          <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="text-sm font-bold text-slate-800">Kết luận</div>
-            <p className="mt-2 text-sm leading-relaxed text-slate-800">
+          <div className="mt-4 rounded-xl border border-indigo-200/80 bg-gradient-to-b from-white to-indigo-50/30 px-4 py-3 shadow-sm">
+            <div className="text-sm font-extrabold uppercase tracking-wide text-indigo-950">
+              Kết luận
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-indigo-950/90">
               Như vậy, theo kết quả tính toán, lựa chọn nguồn điện cho hệ thống
               báo cháy như sau:
             </p>
-            <ul className="mt-3 list-none space-y-3 text-sm leading-relaxed text-slate-800">
+            <ul className="mt-3 list-none space-y-3 text-sm leading-relaxed text-indigo-950/90">
               <li className="flex flex-wrap items-baseline gap-x-1 pl-0">
-                <span className="mr-1 font-semibold text-slate-900">+</span>
+                <span className="mr-1 font-bold text-cyan-700">+</span>
                 <span>
                   Ắc quy dự phòng có dung lượng thấp nhất theo tính toán là{" "}
                 </span>
@@ -626,14 +680,14 @@ export default function FireBatteryTab({
                   math="C_{20}"
                   className="!inline"
                 />
-                <span className="tabular-nums font-semibold text-slate-900">
+                <span className="tabular-nums font-bold text-indigo-950">
                   {" = "}
                   {formatCalcNumber(r.c20RequiredAh)} Ah
                 </span>
                 <span>.</span>
               </li>
               <li className="flex flex-wrap items-baseline gap-x-1">
-                <span className="mr-1 font-semibold text-slate-900">+</span>
+                <span className="mr-1 font-bold text-cyan-700">+</span>
                 <span>
                   Bộ cấp nguồn chính: Dòng điện nguồn chính theo tính toán
                   là{" "}
@@ -643,19 +697,19 @@ export default function FireBatteryTab({
                   math="I_{\mathrm{PSE}}"
                   className="!inline"
                 />
-                <span className="tabular-nums font-semibold text-slate-900">
+                <span className="tabular-nums font-bold text-indigo-950">
                   {" = "}
                   {formatCalcNumber(r.ipseA)} A
                 </span>
                 <span>, dòng điện ở điều kiện báo cháy là </span>
                 <KatexFormula display={false} math="I_A" className="!inline" />
-                <span className="tabular-nums font-semibold text-slate-900">
+                <span className="tabular-nums font-bold text-indigo-950">
                   {" = "}
                   {formatCalcNumber(r.iaA)} A
                 </span>
                 <span>, dòng điện nạp tối thiểu cho ắc quy là </span>
                 <KatexFormula display={false} math="I_C" className="!inline" />
-                <span className="tabular-nums font-semibold text-slate-900">
+                <span className="tabular-nums font-bold text-indigo-950">
                   {" = "}
                   {formatCalcNumber(r.icA)} A
                 </span>

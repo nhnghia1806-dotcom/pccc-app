@@ -3,8 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parseAppSavedJson, type AppSavedJson } from "@/domain/app-saved";
-import { calcPcccElectric } from "@/domain/pccc-electric/calc";
-import { buildPumpStationElectricDocBuffer } from "@/lib/pump-station-electric-docx";
+import { calcFireBattery } from "@/domain/fire-battery/calc";
+import { buildFireBatteryReportDocBuffer } from "@/lib/fire-battery-report-docx";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -18,11 +18,11 @@ export async function POST(req: Request) {
   const parsed = parseAppSavedJson(body.inputs ?? null);
   if (!parsed) return NextResponse.json({ error: "invalid_inputs" }, { status: 400 });
 
-  const inputs = parsed.electric;
-  const results = calcPcccElectric(inputs);
-  const buf = await buildPumpStationElectricDocBuffer(
+  const fb = parsed.fireBattery;
+  const results = calcFireBattery(fb);
+  const buf = await buildFireBatteryReportDocBuffer(
     parsed.projectMeta,
-    inputs,
+    fb,
     results,
   );
 
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
     headers: {
       "content-type":
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "content-disposition": 'attachment; filename="bang-tinh-tram-bom-pccc.docx"',
+      "content-disposition":
+        'attachment; filename="bang-tinh-bao-chay-tu-dong.docx"',
     },
   });
 }

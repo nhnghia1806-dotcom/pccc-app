@@ -4,7 +4,6 @@ import { signOut } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createDefaultProjectMeta,
-  parseAppSavedJson,
   toAppSavedJson,
   type ProjectMeta,
 } from "@/domain/app-saved";
@@ -20,7 +19,6 @@ import { calcFireBattery } from "@/domain/fire-battery/calc";
 import { createDefaultFireBatteryInputs } from "@/domain/fire-battery/defaults";
 import { KatexFormula } from "@/components/katex-formula";
 import FireBatteryTab from "./fire-battery-tab";
-import PcccImageStrip from "./pccc-image-strip";
 
 type Props = { userEmail: string };
 
@@ -44,28 +42,74 @@ function Card({
   children,
   right,
   icon,
+  variant = "neutral",
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   right?: React.ReactNode;
   icon?: string;
+  /** neutral: xám (dùng chung). pump: chủ đề trạm bơm (cùng palette indigo/blue với tab báo cháy) */
+  variant?: "neutral" | "pump";
 }) {
+  const isPump = variant === "pump";
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-        <div className="flex items-center gap-2">
+    <section
+      className={
+        isPump
+          ? "overflow-hidden rounded-2xl border border-indigo-200/70 bg-white shadow-md shadow-indigo-900/10 ring-1 ring-indigo-900/5"
+          : "rounded-xl border border-slate-200 bg-white shadow-sm"
+      }
+    >
+      <div
+        className={
+          isPump
+            ? "flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-800 via-blue-700 to-slate-800 px-4 py-3.5 text-white shadow-inner"
+            : "flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3"
+        }
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
           {icon ? (
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-xs">
+            <span
+              className={
+                isPump
+                  ? "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-base shadow-sm backdrop-blur-sm"
+                  : "inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-xs"
+              }
+            >
               {icon}
             </span>
           ) : null}
-          <div className="text-[15px] font-bold tracking-tight text-slate-800">
+          <div
+            className={
+              isPump
+                ? "text-[15px] font-bold tracking-tight text-white drop-shadow-sm"
+                : "text-[15px] font-bold tracking-tight text-slate-800"
+            }
+          >
             {title}
           </div>
         </div>
-        {right}
+        {right
+          ? isPump
+            ? (
+                <div className="[&_button]:rounded-lg [&_button]:border-white/35 [&_button]:bg-white/10 [&_button]:text-white [&_button]:hover:bg-white/20">
+                  {right}
+                </div>
+              )
+            : (
+                right
+              )
+          : null}
       </div>
-      <div className="p-4">{children}</div>
+      <div
+        className={
+          isPump
+            ? "bg-gradient-to-b from-indigo-50/35 to-white p-4 sm:p-5"
+            : "p-4"
+        }
+      >
+        {children}
+      </div>
     </section>
   );
 }
@@ -107,15 +151,21 @@ function NumberInput({
   onChange,
   step,
   min,
+  variant = "neutral",
 }: {
   value: number;
   onChange: (v: number) => void;
   step?: number;
   min?: number;
+  variant?: "neutral" | "pump";
 }) {
+  const cls =
+    variant === "pump"
+      ? "w-full rounded-lg border border-indigo-200/90 bg-white px-3 py-2 text-sm tabular-nums text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
+      : "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20";
   return (
     <input
-      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
+      className={cls}
       type="number"
       value={Number.isFinite(value) ? value : 0}
       min={min}
@@ -131,14 +181,30 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
   items,
   onChange,
   addLabel,
+  variant = "neutral",
 }: {
   items: T[];
   onChange: (next: T[]) => void;
   addLabel: string;
+  variant?: "neutral" | "pump";
 }) {
+  const isPump = variant === "pump";
+  const wrapBorder = isPump
+    ? "overflow-hidden rounded-xl border border-indigo-200/80 shadow-sm"
+    : "overflow-hidden rounded-lg border border-slate-200";
+  const thead = isPump
+    ? "bg-gradient-to-r from-indigo-900 to-blue-800 text-[11px] font-semibold uppercase tracking-wide text-white"
+    : "bg-slate-50 text-slate-700";
+  const thPad = isPump ? "px-3 py-2.5 text-left" : "px-3 py-2 text-left font-medium";
+  const rowHover = isPump
+    ? "border-t border-indigo-100/80 transition hover:bg-violet-50/50"
+    : "border-t border-slate-100 hover:bg-slate-50";
+  const textInput = isPump
+    ? "w-full rounded-lg border border-indigo-200/80 bg-white px-2 py-1.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+    : "w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20";
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className={wrapBorder}>
         <table className="w-full table-fixed text-sm">
           <colgroup>
             <col className="w-[10%]" />
@@ -147,34 +213,44 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
             <col className="w-[20%]" />
             <col className="w-11" />
           </colgroup>
-          <thead className="bg-slate-50 text-slate-700">
+          <thead className={thead}>
             <tr>
-              <th className="px-3 py-2 text-left font-medium">STT</th>
-              <th className="px-3 py-2 text-left font-medium">Tên</th>
-              <th className="px-3 py-2 text-left font-medium">
-                Công suất định mức (KW)
-              </th>
-              <th className="px-3 py-2 text-left font-medium">Số lượng</th>
-              <th className="px-1 py-2 text-left font-medium"></th>
+              <th className={thPad}>STT</th>
+              <th className={thPad}>Tên</th>
+              <th className={thPad}>Công suất định mức (KW)</th>
+              <th className={thPad}>Số lượng</th>
+              <th className={thPad}></th>
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-zinc-500">
+                <td
+                  colSpan={5}
+                  className={
+                    isPump
+                      ? "px-3 py-8 text-center text-sm text-indigo-900/50"
+                      : "px-3 py-6 text-center text-zinc-500"
+                  }
+                >
                   Chưa có thiết bị.
                 </td>
               </tr>
             ) : (
               items.map((it, idx) => (
-                <tr
-                  key={idx}
-                  className="border-t border-slate-100 hover:bg-slate-50"
-                >
-                  <td className="px-6 py-2 text-left">{idx + 1}</td>
+                <tr key={idx} className={rowHover}>
+                  <td
+                    className={
+                      isPump
+                        ? "px-4 py-2.5 text-left text-sm font-semibold tabular-nums text-indigo-950/80"
+                        : "px-6 py-2 text-left"
+                    }
+                  >
+                    {idx + 1}
+                  </td>
                   <td className="min-w-0 px-3 py-2">
                     <input
-                      className="w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
+                      className={textInput}
                       value={it.name}
                       onChange={(e) => {
                         const next = items.slice();
@@ -185,6 +261,7 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                   </td>
                   <td className="min-w-0 px-3 py-2">
                     <NumberInput
+                      variant={variant}
                       value={it.kw}
                       min={0}
                       step={0.1}
@@ -197,6 +274,7 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                   </td>
                   <td className="min-w-0 px-3 py-2">
                     <NumberInput
+                      variant={variant}
                       value={it.quantity}
                       min={0}
                       step={1}
@@ -212,7 +290,11 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
                   </td>
                   <td className="px-1 py-2">
                     <button
-                      className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
+                      className={
+                        isPump
+                          ? "rounded-lg border border-indigo-200/80 bg-white px-2 py-1.5 text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-800"
+                          : "rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
+                      }
                       onClick={() =>
                         onChange(items.filter((_, i) => i !== idx))
                       }
@@ -231,7 +313,11 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
 
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100"
+        className={
+          isPump
+            ? "inline-flex items-center gap-2 rounded-xl border-2 border-cyan-400/70 bg-gradient-to-r from-cyan-400 to-sky-500 px-4 py-2.5 text-sm font-bold text-indigo-950 shadow-sm shadow-cyan-900/15 transition hover:brightness-105 active:scale-[0.99]"
+            : "inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100"
+        }
         onClick={() =>
           onChange([
             ...items,
@@ -252,13 +338,29 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
 function BackupTable({
   items,
   onChange,
+  variant = "neutral",
 }: {
   items: BackupPump[];
   onChange: (next: BackupPump[]) => void;
+  variant?: "neutral" | "pump";
 }) {
+  const isPump = variant === "pump";
+  const wrapBorder = isPump
+    ? "overflow-hidden rounded-xl border border-indigo-200/80 shadow-sm"
+    : "overflow-hidden rounded-lg border border-slate-200";
+  const thead = isPump
+    ? "bg-gradient-to-r from-indigo-900 to-blue-800 text-[11px] font-semibold uppercase tracking-wide text-white"
+    : "bg-slate-50 text-slate-700";
+  const thPad = isPump ? "px-3 py-2.5 text-left" : "px-3 py-2 text-left font-medium";
+  const rowHover = isPump
+    ? "border-t border-indigo-100/80 transition hover:bg-violet-50/50"
+    : "border-t border-slate-100 hover:bg-slate-50";
+  const textInput = isPump
+    ? "w-full rounded-lg border border-indigo-200/80 bg-white px-2 py-1.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+    : "w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20";
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className={wrapBorder}>
         <table className="w-full table-fixed text-sm">
           <colgroup>
             <col className="w-[10%]" />
@@ -267,34 +369,44 @@ function BackupTable({
             <col className="w-[20%]" />
             <col className="w-11" />
           </colgroup>
-          <thead className="bg-slate-50 text-slate-700">
+          <thead className={thead}>
             <tr>
-              <th className="px-3 py-2 text-left font-medium">STT</th>
-              <th className="px-3 py-2 text-left font-medium">Tên bơm</th>
-              <th className="px-3 py-2 text-left font-medium">
-                Công suất định mức (KW)
-              </th>
-              <th className="px-3 py-2 text-left font-medium">Số lượng</th>
-              <th className="px-1 py-2 text-left font-medium"></th>
+              <th className={thPad}>STT</th>
+              <th className={thPad}>Tên bơm</th>
+              <th className={thPad}>Công suất định mức (KW)</th>
+              <th className={thPad}>Số lượng</th>
+              <th className={thPad}></th>
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-zinc-500">
+                <td
+                  colSpan={5}
+                  className={
+                    isPump
+                      ? "px-3 py-8 text-center text-sm text-indigo-900/50"
+                      : "px-3 py-6 text-center text-zinc-500"
+                  }
+                >
                   Chưa có bơm dự phòng.
                 </td>
               </tr>
             ) : (
               items.map((it, idx) => (
-                <tr
-                  key={idx}
-                  className="border-t border-slate-100 hover:bg-slate-50"
-                >
-                  <td className="px-6 py-2 text-left">{idx + 1}</td>
+                <tr key={idx} className={rowHover}>
+                  <td
+                    className={
+                      isPump
+                        ? "px-4 py-2.5 text-left text-sm font-semibold tabular-nums text-indigo-950/80"
+                        : "px-6 py-2 text-left"
+                    }
+                  >
+                    {idx + 1}
+                  </td>
                   <td className="min-w-0 px-3 py-2">
                     <input
-                      className="w-full rounded-md border border-slate-200 px-2 py-1.5 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20"
+                      className={textInput}
                       value={it.name}
                       onChange={(e) => {
                         const next = items.slice();
@@ -305,6 +417,7 @@ function BackupTable({
                   </td>
                   <td className="min-w-0 px-3 py-2">
                     <NumberInput
+                      variant={variant}
                       value={it.kw}
                       min={0}
                       step={0.1}
@@ -317,6 +430,7 @@ function BackupTable({
                   </td>
                   <td className="min-w-0 px-3 py-2">
                     <NumberInput
+                      variant={variant}
                       value={it.quantity}
                       min={0}
                       step={1}
@@ -332,7 +446,11 @@ function BackupTable({
                   </td>
                   <td className="px-1 py-2">
                     <button
-                      className="rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
+                      className={
+                        isPump
+                          ? "rounded-lg border border-indigo-200/80 bg-white px-2 py-1.5 text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-800"
+                          : "rounded-md border border-slate-200 px-2 py-1 text-slate-600 hover:bg-rose-50 hover:text-rose-700"
+                      }
                       onClick={() =>
                         onChange(items.filter((_, i) => i !== idx))
                       }
@@ -351,7 +469,11 @@ function BackupTable({
 
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100"
+        className={
+          isPump
+            ? "inline-flex items-center gap-2 rounded-xl border-2 border-cyan-400/70 bg-gradient-to-r from-cyan-400 to-sky-500 px-4 py-2.5 text-sm font-bold text-indigo-950 shadow-sm shadow-cyan-900/15 transition hover:brightness-105 active:scale-[0.99]"
+            : "inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100"
+        }
         onClick={() =>
           onChange([
             ...items,
@@ -380,12 +502,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
   const [fireBatteryCalculateError, setFireBatteryCalculateError] = useState<
     string | null
   >(null);
-  const [saveStatus, setSaveStatus] = useState<
-    "idle" | "loading" | "saved" | "error"
-  >("idle");
   const [calculateError, setCalculateError] = useState<string | null>(null);
   const [formulaPanelOpen, setFormulaPanelOpen] = useState(true);
-  const saveTimer = useRef<number | null>(null);
   const calculateErrorClearTimer = useRef<number | null>(null);
   const fireBatteryCalculateErrorClearTimer = useRef<number | null>(null);
 
@@ -425,62 +543,6 @@ export default function PcccElectricClient({ userEmail }: Props) {
   const warnings = useMemo(() => validateInputs(inputs), [inputs]);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      setSaveStatus("loading");
-      try {
-        const res = await fetch("/api/state");
-        if (!res.ok) throw new Error("load_failed");
-        const j = (await res.json()) as { inputs?: unknown };
-        if (alive && j.inputs) {
-          const parsed = parseAppSavedJson(j.inputs);
-          if (parsed) {
-            setProjectMeta(parsed.projectMeta);
-            setInputs(parsed.electric);
-            setFireBattery(parsed.fireBattery);
-            setFireBatteryResults(calcFireBattery(parsed.fireBattery));
-            clearFireBatteryCalculateErrorDismissTimer();
-            setFireBatteryCalculateError(null);
-          }
-        }
-        if (alive) setSaveStatus("idle");
-      } catch {
-        if (alive) setSaveStatus("error");
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(async () => {
-      try {
-        await fetch("/api/state", {
-          method: "PUT",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            inputs: toAppSavedJson({
-              electric: inputs,
-              fireBattery,
-              projectMeta,
-            }),
-          }),
-        });
-        setSaveStatus("saved");
-        window.setTimeout(() => setSaveStatus("idle"), 800);
-      } catch {
-        setSaveStatus("error");
-      }
-    }, 600);
-
-    return () => {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    };
-  }, [inputs, fireBattery, projectMeta]);
-
-  useEffect(() => {
     return () => {
       if (calculateErrorClearTimer.current !== null) {
         window.clearTimeout(calculateErrorClearTimer.current);
@@ -492,13 +554,45 @@ export default function PcccElectricClient({ userEmail }: Props) {
   }, []);
 
   async function exportWord() {
-    const res = await fetch("/api/export/word", { method: "POST" });
+    const res = await fetch("/api/export/word", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        inputs: toAppSavedJson({
+          electric: inputs,
+          fireBattery,
+          projectMeta,
+        }),
+      }),
+    });
     if (!res.ok) return;
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "bang-tinh-tram-bom-pccc.docx";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function exportWordFire() {
+    const res = await fetch("/api/export/word-fire", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        inputs: toAppSavedJson({
+          electric: inputs,
+          fireBattery,
+          projectMeta,
+        }),
+      }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bang-tinh-bao-chay-tu-dong.docx";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -569,34 +663,30 @@ export default function PcccElectricClient({ userEmail }: Props) {
       </header>
 
       <div className="mx-auto max-w-[1600px] px-[40px] py-[32px]">
-        <PcccImageStrip />
-
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 font-sans text-sm">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-xl border border-slate-200/90 bg-white p-1 font-sans text-sm shadow-sm">
             <button
-              className={`rounded-md px-3 py-2 font-semibold ${tab === "electric" ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}
+              className={`rounded-lg px-3 py-2 font-semibold transition ${
+                tab === "electric"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-900/20"
+                  : "text-slate-700 hover:bg-slate-50"
+              }`}
               onClick={() => setTab("electric")}
               type="button"
             >
               BẢNG TÍNH NGUỒN CẤP ĐIỆN CHO TRẠM BƠM PHỤC VỤ CHỮA CHÁY
             </button>
             <button
-              className={`rounded-md px-3 py-2 font-semibold ${tab === "fireBattery" ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-slate-50"}`}
+              className={`rounded-lg px-3 py-2 font-semibold transition ${
+                tab === "fireBattery"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-900/20"
+                  : "text-slate-700 hover:bg-slate-50"
+              }`}
               onClick={() => setTab("fireBattery")}
               type="button"
             >
               BẢNG TÍNH NGUỒN CẤP ĐIỆN CHO HỆ THỐNG BÁO CHÁY TỰ ĐỘNG
             </button>
-          </div>
-
-          <div className="text-xs text-zinc-500">
-            {saveStatus === "loading"
-              ? "Đang tải..."
-              : saveStatus === "saved"
-                ? "Đã lưu"
-                : saveStatus === "error"
-                  ? "Chưa lưu được (DB chưa sẵn sàng?)"
-                  : ""}
           </div>
         </div>
 
@@ -605,23 +695,27 @@ export default function PcccElectricClient({ userEmail }: Props) {
         </div>
 
         {tab === "fireBattery" ? (
-          <FireBatteryTab
-            inputs={fireBattery}
-            onChange={setFireBattery}
-            results={fireBatteryResults}
-            onCalculate={handleCalculateFireBattery}
-            onReset={handleResetFireBattery}
-            calculateError={fireBatteryCalculateError}
-          />
+          <div className="rounded-2xl border border-indigo-100/80 bg-gradient-to-b from-indigo-50/30 via-white to-slate-50/40 p-4 shadow-sm shadow-indigo-900/5 sm:p-6">
+            <FireBatteryTab
+              inputs={fireBattery}
+              onChange={setFireBattery}
+              results={fireBatteryResults}
+              onCalculate={handleCalculateFireBattery}
+              onReset={handleResetFireBattery}
+              onExportWord={exportWordFire}
+              calculateError={fireBatteryCalculateError}
+            />
+          </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 rounded-2xl border border-indigo-100/80 bg-gradient-to-b from-indigo-50/30 via-white to-slate-50/40 p-4 shadow-sm shadow-indigo-900/5 sm:p-6">
             <Card
+              variant="pump"
               title="Công thức tính toán"
               icon="📘"
               right={
                 <button
                   type="button"
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-white/35 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
                   onClick={() => setFormulaPanelOpen((v) => !v)}
                   aria-expanded={formulaPanelOpen}
                 >
@@ -630,17 +724,17 @@ export default function PcccElectricClient({ userEmail }: Props) {
               }
             >
               {formulaPanelOpen ? (
-                <div className="space-y-3 text-sm text-zinc-700">
-                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">
+                <div className="space-y-3 text-sm text-zinc-800">
+                  <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+                    <div className="font-bold text-indigo-950">
                       1) Phụ tải tính toán bơm nước chữa cháy
                     </div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                    <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                       <KatexFormula math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i" />
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula
                           display={false}
                           math="P_i = P_{\text{đm}} \cdot \text{Số lượng}"
@@ -648,28 +742,28 @@ export default function PcccElectricClient({ userEmail }: Props) {
                         <span>(Công suất điện định mức của bơm thứ i)</span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula display={false} math="K_{yc}" />
                         <span>: Hệ số yêu cầu của phụ tải PCCC</span>
                       </li>
                     </ul>
                   </div>
 
-                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">
+                  <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+                    <div className="font-bold text-indigo-950">
                       2) Công suất biểu kiến máy biến áp
                     </div>
-                    <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                    <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                       <KatexFormula math="S_{\mathrm{MBA}} \geq \dfrac{P_{tt}}{\cos\varphi}" />
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula display={false} math="P_{tt}" />
                         <span>: Tổng phụ tải tính toán</span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula display={false} math="\cos\varphi" />
                         <span>
                           : Hệ số công suất trung bình của lưới điện PCCC
@@ -678,12 +772,12 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </ul>
                   </div>
 
-                  <div className="rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2">
-                    <div className="font-bold">
+                  <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
+                    <div className="font-bold text-indigo-950">
                       3) Công suất máy phát điện dự phòng (khi sử dụng bơm chữa
                       cháy dự phòng điện)
                     </div>
-                    <div className="mb-3 space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-800">
+                    <div className="mb-3 space-y-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                       <KatexFormula math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i" />
                       <KatexFormula math="P_{kđ} = K_{kđ} \displaystyle\sum_{i=1}^{n} P_i" />
                       <KatexFormula math="S_{\text{MPĐ}} \geq \max(S_{tt},\, S_{k\text{đ}}) \cdot k_{\mathrm{dp}}" />
@@ -691,28 +785,28 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                     <ul className="space-y-1 text-sm text-slate-700">
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula
                           display={false}
                           math="S_{tt} = \dfrac{P_{tt}}{\cos\varphi}"
                         />
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula
                           display={false}
                           math="S_{k\text{đ}} = \dfrac{P_{k\text{đ}}}{\cos\varphi}"
                         />
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula display={false} math="K_{\mathrm{dp}}" />
                         <span>
                           : Hệ số dự phòng, thường lấy từ 1,1 đến 1,25
                         </span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
-                        <span>•</span>
+                        <span className="text-indigo-600">•</span>
                         <KatexFormula display={false} math="\cos\varphi" />
                         <span>
                           : Hệ số công suất trung bình của lưới điện PCCC
@@ -722,15 +816,16 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-zinc-600">
                   Đang ẩn phần công thức. Bấm{" "}
-                  <span className="font-medium text-slate-700">Mở</span> ở góc
+                  <span className="font-semibold text-indigo-800">Mở</span> ở góc
                   phải để mở lại.
                 </p>
               )}
             </Card>
 
             <Card
+              variant="pump"
               title={
                 <span className="inline-flex flex-wrap items-center gap-x-1">
                   Danh mục thiết bị phụ tải
@@ -739,6 +834,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
               icon="🚒"
             >
               <LoadsTable<NamedLoad>
+                variant="pump"
                 items={inputs.pumpsMain}
                 onChange={(pumpsMain) =>
                   setInputs((s) => ({ ...s, pumpsMain }))
@@ -748,8 +844,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
             </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card title="Bơm chữa cháy điện dự phòng" icon="⚙️">
+              <Card variant="pump" title="Bơm chữa cháy điện dự phòng" icon="⚙️">
                 <BackupTable
+                  variant="pump"
                   items={inputs.backupPumps}
                   onChange={(backupPumps) =>
                     setInputs((s) => ({ ...s, backupPumps }))
@@ -757,13 +854,14 @@ export default function PcccElectricClient({ userEmail }: Props) {
                 />
               </Card>
 
-              <Card title="Tham số chung" icon="🔧">
+              <Card variant="pump" title="Tham số chung" icon="🔧">
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">
+                    <div className="text-xs font-semibold text-indigo-900/85">
                       K<sub>yc</sub>
                     </div>
                     <NumberInput
+                      variant="pump"
                       value={inputs.kyc}
                       step={0.01}
                       min={0}
@@ -774,10 +872,11 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">
+                    <div className="text-xs font-semibold text-indigo-900/85">
                       K<sub>kđ</sub>
                     </div>
                     <NumberInput
+                      variant="pump"
                       value={inputs.kkD}
                       step={0.01}
                       min={0}
@@ -788,10 +887,11 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">
+                    <div className="text-xs font-semibold text-indigo-900/85">
                       cosφ
                     </div>
                     <NumberInput
+                      variant="pump"
                       value={inputs.cosPhi}
                       step={0.01}
                       min={0}
@@ -804,10 +904,11 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   </label>
                   <label className="block">
-                    <div className="text-xs font-medium text-zinc-700">
+                    <div className="text-xs font-semibold text-indigo-900/85">
                       K<sub>dp</sub>
                     </div>
                     <NumberInput
+                      variant="pump"
                       value={inputs.kdp}
                       step={0.01}
                       min={0}
@@ -820,8 +921,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
                 </div>
 
                 {warnings.length ? (
-                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                    <div className="font-medium">Lưu ý</div>
+                  <div className="mt-4 rounded-xl border border-indigo-300/60 bg-gradient-to-r from-indigo-50/90 to-cyan-50/40 px-3 py-2 text-sm text-indigo-950 shadow-sm">
+                    <div className="font-bold text-indigo-900">Lưu ý</div>
                     <ul className="mt-1 list-disc pl-5">
                       {warnings.map((x) => (
                         <li key={x.code}>{x.message}</li>
@@ -833,14 +934,14 @@ export default function PcccElectricClient({ userEmail }: Props) {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-900/20 transition hover:brightness-105 active:scale-[0.99]"
                     onClick={handleCalculate}
                   >
                     ⚡ Tính toán
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                    className="rounded-xl border-2 border-rose-300/90 bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-800 shadow-sm transition hover:bg-rose-100 active:scale-[0.99]"
                     onClick={() => {
                       clearCalculateErrorDismissTimer();
                       setInputs(resetInputs);
@@ -852,7 +953,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    className="rounded-xl border-2 border-indigo-200 bg-white px-4 py-2.5 text-sm font-bold text-indigo-900 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50/60 active:scale-[0.99]"
                     onClick={exportWord}
                   >
                     Xuất Word
@@ -866,10 +967,10 @@ export default function PcccElectricClient({ userEmail }: Props) {
               </Card>
             </div>
 
-            <Card title="Kết quả tính toán" icon="✅">
+            <Card variant="pump" title="Kết quả tính toán" icon="✅">
               <div className="grid gap-3 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
-                  <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+                <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50/40 px-4 py-3 shadow-sm shadow-indigo-900/5 lg:col-span-2">
+                  <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-800/75">
                     <KatexFormula
                       display={false}
                       math="P_{tt}"
@@ -877,13 +978,15 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     />
                     <span>– Công suất phụ tải bơm nước chữa cháy</span>
                   </div>
-                  <div className="mt-1 text-2xl font-semibold tracking-tight">
+                  <div className="mt-1 text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
                     {formatCalcNumber(results.ptt)}{" "}
-                    <span className="text-base font-medium">kW</span>
+                    <span className="text-base font-semibold text-indigo-800">
+                      kW
+                    </span>
                   </div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
-                  <div className="flex flex-wrap items-baseline gap-x-1 text-xs text-zinc-500">
+                <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50/40 px-4 py-3 shadow-sm shadow-indigo-900/5 lg:col-span-2">
+                  <div className="flex flex-wrap items-baseline gap-x-1 text-xs font-semibold text-indigo-800/75">
                     <KatexFormula
                       display={false}
                       math="S_{\mathrm{MBA}}"
@@ -891,23 +994,23 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     />
                     <span>– Công suất biểu kiến máy biến áp</span>
                   </div>
-                  <div className="text-2xl font-semibold tracking-tight">
+                  <div className="text-2xl font-bold tabular-nums tracking-tight text-indigo-950">
                     {formatCalcNumber(results.smba)}{" "}
-                    <span className="text-base font-medium">kVA</span>
+                    <span className="text-base font-semibold text-indigo-800">
+                      kVA
+                    </span>
                   </div>
                   {results.smba === 0 ? (
-                    <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+                    <div className="mt-3 rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2 text-sm text-indigo-900/85">
                       Để tính công suất biểu kiến máy áp, hãy thêm thiết bị phụ
                       tải.
                     </div>
                   ) : (
-                    <p className="mt-3 border-t border-slate-100 pt-3 text-sm leading-relaxed text-slate-800">
-                      <span className="font-semibold text-slate-900">
-                        Kết luận:
-                      </span>{" "}
+                    <p className="mt-3 border-t border-indigo-100 pt-3 text-sm leading-relaxed text-indigo-950/90">
+                      <span className="font-bold text-indigo-900">Kết luận:</span>{" "}
                       Để đảm bảo yêu cầu theo quy định, công trình phải sử dụng
                       máy biến áp có công suất tối thiểu là{" "}
-                      <span className="font-semibold tabular-nums text-blue-800">
+                      <span className="font-bold tabular-nums text-indigo-800">
                         {formatCalcNumber(results.smba)} kVA
                       </span>
                       .
@@ -915,11 +1018,11 @@ export default function PcccElectricClient({ userEmail }: Props) {
                   )}
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 lg:col-span-2">
-                  <div className="text-sm font-bold tracking-tight">
+                <div className="rounded-xl border border-cyan-200/90 bg-gradient-to-br from-cyan-50/45 via-white to-white px-4 py-3 shadow-sm shadow-cyan-900/10 ring-1 ring-cyan-200/40 lg:col-span-2">
+                  <div className="text-sm font-extrabold uppercase tracking-wide text-indigo-950">
                     Công suất máy phát điện dự phòng cho bơm chữa cháy
                   </div>
-                  <div className="mt-3 grid gap-2 text-sm text-zinc-700">
+                  <div className="mt-3 grid gap-2 text-sm text-indigo-950/90">
                     <div className="flex items-center justify-between">
                       <KatexFormula display={false} math="P_{tt}" />
                       <span className="font-mono">
@@ -944,8 +1047,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
                         {formatCalcNumber(results.skd)} kVA
                       </span>
                     </div>
-                    <div className="flex items-center justify-between border-t pt-2">
-                      <span className="inline-flex items-baseline gap-x-1 font-medium">
+                    <div className="flex items-center justify-between border-t border-cyan-200/60 pt-2">
+                      <span className="inline-flex items-baseline gap-x-1 font-semibold text-cyan-900">
                         <KatexFormula
                           display={false}
                           math="S_{\text{MPĐ}}"
@@ -953,24 +1056,22 @@ export default function PcccElectricClient({ userEmail }: Props) {
                         />
                         <span>tối thiểu</span>
                       </span>
-                      <span className="font-mono font-semibold">
+                      <span className="font-mono text-base font-bold tabular-nums text-indigo-950">
                         {formatCalcNumber(results.smpd)} kVA
                       </span>
                     </div>
                   </div>
 
                   {results.smpd === 0 ? (
-                    <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+                    <div className="mt-3 rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2 text-sm text-indigo-900/85">
                       Để tính máy phát điện, hãy thêm bơm dự phòng.
                     </div>
                   ) : (
-                    <p className="mt-3 border-t border-slate-100 pt-3 text-sm leading-relaxed text-slate-800">
-                      <span className="font-semibold text-slate-900">
-                        Kết luận:
-                      </span>{" "}
+                    <p className="mt-3 border-t border-indigo-100 pt-3 text-sm leading-relaxed text-indigo-950/90">
+                      <span className="font-bold text-indigo-900">Kết luận:</span>{" "}
                       Để đảm bảo theo quy định, máy phát điện dự phòng phải có
                       công suất tối thiểu{" "}
-                      <span className="font-semibold tabular-nums text-blue-800">
+                      <span className="font-bold tabular-nums text-indigo-800">
                         {formatCalcNumber(results.smpd)} kVA
                       </span>
                       .
