@@ -47,7 +47,7 @@ export const PCCC_PERSON: PcccGalleryItem[] = [
   },
   {
     src: "/images/pccc/6292fc33-d6ef-4292-92f3-266fa1fc0486.jpg",
-    alt: "Nguyễn Xuân Hùng",
-    caption: "Nguyễn Xuân Hùng",
+    alt: "Vũ Xuân Hùng",
+    caption: "Vũ Xuân Hùng",
   },
 ];

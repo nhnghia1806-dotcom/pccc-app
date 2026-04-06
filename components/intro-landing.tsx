@@ -278,7 +278,7 @@ export default function IntroLanding() {
             </p>
             <p className="mx-auto mt-2 max-w-3xl text-pretty text-sm text-amber-200/85 sm:text-base">
               <span className="font-semibold text-amber-300">Chủ trì:</span>{" "}
-              ThS. Nguyễn Quang Trung — Nguyễn Xuân Hùng
+              ThS. Nguyễn Quang Trung — Vũ Xuân Hùng
             </p>
 
             <p className="mx-auto mt-8 max-w-2xl text-pretty text-sm leading-relaxed text-zinc-400 sm:text-base">

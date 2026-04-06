@@ -451,7 +451,7 @@ export async function buildFireBatteryReportDocBuffer(
       ],
     }),
     new Paragraph({
-      spacing: { after: 200, ...LINE_BODY },
+      spacing: { after: 140, ...LINE_BODY },
       alignment: AlignmentType.JUSTIFIED,
       indent: { left: INDENT_SUB },
       children: [
@@ -462,6 +462,36 @@ export async function buildFireBatteryReportDocBuffer(
       ],
     }),
   ];
+
+  /** Sau “Trong đó:” — thay số và kết quả, giống tab trạm bơm (→ … = …). */
+  const pCalcC20 = new Paragraph({
+    spacing: { after: 240, ...LINE_BODY },
+    alignment: AlignmentType.JUSTIFIED,
+    indent: { left: INDENT_BLOCK },
+    children: [
+      tr("→ "),
+      ...sub("C", "20", false),
+      tr(" = 1,25 × [("),
+      ...sub("I", "Q", false),
+      tr(" × "),
+      ...sub("T", "Q", false),
+      tr(") + "),
+      ...sub("F", "C", false),
+      tr(" × ("),
+      ...sub("I", "A", false),
+      tr(" × "),
+      ...sub("T", "A", false),
+      tr(")] = 1,25 × [("),
+      tr(`${iqStr} × ${tqStr}`),
+      tr(") + "),
+      tr(fcStr),
+      tr(" × ("),
+      tr(`${iaStr} × ${taStr}`),
+      tr(")] = "),
+      tr(`${c20Str} Ah`, { bold: true }),
+      tr("."),
+    ],
+  });
 
   const h12 = new Paragraph({
     spacing: { before: 200, after: 160, ...LINE_BODY },
@@ -522,7 +552,7 @@ export async function buildFireBatteryReportDocBuffer(
       ],
     }),
     new Paragraph({
-      spacing: { after: 200, ...LINE_BODY },
+      spacing: { after: 140, ...LINE_BODY },
       alignment: AlignmentType.JUSTIFIED,
       indent: { left: INDENT_SUB },
       children: [
@@ -532,6 +562,24 @@ export async function buildFireBatteryReportDocBuffer(
       ],
     }),
   ];
+
+  const pCalcIc = new Paragraph({
+    spacing: { after: 280, ...LINE_BODY },
+    alignment: AlignmentType.JUSTIFIED,
+    indent: { left: INDENT_BLOCK },
+    children: [
+      tr("→ "),
+      ...sub("I", "C", false),
+      tr(" = 1,25 × [("),
+      ...sub("I", "Q", false),
+      tr(" × 5) + ("),
+      ...sub("I", "A", false),
+      tr(" × 0,5)] / 24 = 1,25 × [("),
+      tr(`${iqStr} × 5) + (${iaStr} × 0,5)] / 24 = `),
+      tr(`${icStr} A`, { bold: true }),
+      tr("."),
+    ],
+  });
 
   const h13 = new Paragraph({
     spacing: { before: 200, after: 160, ...LINE_BODY },
@@ -571,7 +619,7 @@ export async function buildFireBatteryReportDocBuffer(
       children: [...sub("I", "C", false), tr(" là dòng điện nạp;")],
     }),
     new Paragraph({
-      spacing: { after: 240, ...LINE_BODY },
+      spacing: { after: 140, ...LINE_BODY },
       alignment: AlignmentType.JUSTIFIED,
       indent: { left: INDENT_SUB },
       children: [
@@ -580,6 +628,23 @@ export async function buildFireBatteryReportDocBuffer(
       ],
     }),
   ];
+
+  const pCalcIpe = new Paragraph({
+    spacing: { after: 360, ...LINE_BODY },
+    alignment: AlignmentType.JUSTIFIED,
+    indent: { left: INDENT_BLOCK },
+    children: [
+      tr("→ "),
+      ...sub("I", "PSE", false),
+      tr(" = "),
+      ...sub("I", "Q", false),
+      tr(" + "),
+      ...sub("I", "C", false),
+      tr(` = ${iqStr} + ${icStr} = `),
+      tr(`${ipseStr} A`, { bold: true }),
+      tr("."),
+    ],
+  });
 
   const h14 = new Paragraph({
     spacing: { before: 200, after: 160, ...LINE_BODY },
@@ -680,14 +745,17 @@ export async function buildFireBatteryReportDocBuffer(
           c20Formula,
           trongDoC20,
           ...c20Items,
+          pCalcC20,
           h12,
           icFormula,
           trongDoIc,
           ...icItems,
+          pCalcIc,
           h13,
           ipseFormula,
           trongDoIpe,
           ...ipeItems,
+          pCalcIpe,
           h14,
           ketLuanIntro,
           ketLuan1,
