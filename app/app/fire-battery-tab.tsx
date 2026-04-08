@@ -306,7 +306,8 @@ export default function FireBatteryTab({
             <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
               <div className="font-bold text-indigo-950">
                 1) Dòng điện tổng trạng thái tĩnh{" "}
-                <KatexFormula display={false} math="I_Q" className="!inline" />
+                <KatexFormula display={false} math="I_Q" className="!inline" />{" "}
+                (A)
               </div>
               <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_{Q} = \displaystyle\sum_{i=1}^{n} I_i" />
@@ -316,7 +317,7 @@ export default function FireBatteryTab({
                   <span className="text-indigo-600">•</span>
                   <KatexFormula
                     display={false}
-                    math="I_i = I_{tt} \cdot \text{Số lượng}"
+                    math="I_i = I_{tt} \cdot \text{Số lượng (A)}"
                   />
                 </li>
               </ul>
@@ -325,7 +326,8 @@ export default function FireBatteryTab({
             <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
               <div className="font-bold text-indigo-950">
                 2) Dòng điện tổng trạng thái báo cháy{" "}
-                <KatexFormula display={false} math="I_A" className="!inline" />
+                <KatexFormula display={false} math="I_A" className="!inline" />{" "}
+                (A)
               </div>
               <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_{A} = \displaystyle\sum_{i=1}^{n} I_i" />
@@ -335,7 +337,7 @@ export default function FireBatteryTab({
                   <span className="text-indigo-600">•</span>
                   <KatexFormula
                     display={false}
-                    math="I_i = I_{tt} \cdot \text{Số lượng}"
+                    math="I_i = I_{tt} \cdot \text{Số lượng (A)}"
                   />
                 </li>
               </ul>
@@ -349,6 +351,7 @@ export default function FireBatteryTab({
                   math="C_{20}"
                   className="!inline"
                 />
+                (Ah)
               </div>
               <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="C_{20} = 1{,}25 \cdot \bigl[(I_Q \cdot T_Q) + F_C \cdot (I_A \cdot T_A)\bigr]" />
@@ -362,7 +365,7 @@ export default function FireBatteryTab({
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_Q" />
-                  <span>: Dòng điện tổng ở tải trọng tĩnh</span>
+                  <span>: Dòng điện tổng ở tải trọng tĩnh (A)</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
@@ -387,7 +390,7 @@ export default function FireBatteryTab({
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_A" />
-                  <span>: Dòng điện tổng ở điều kiện báo cháy</span>
+                  <span>: Dòng điện tổng ở điều kiện báo cháy (A)</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
@@ -403,7 +406,8 @@ export default function FireBatteryTab({
             <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
               <div className="font-bold text-indigo-950">
                 4) Dòng điện nạp tối thiểu{" "}
-                <KatexFormula display={false} math="I_C" className="!inline" />
+                <KatexFormula display={false} math="I_C" className="!inline" />{" "}
+                (A)
               </div>
               <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_C = \dfrac{1{,}25 \cdot \bigl[(I_Q \cdot 5) + (I_A \cdot 0{,}5)\bigr]}{24}" />
@@ -419,13 +423,13 @@ export default function FireBatteryTab({
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_Q" />
-                  <span>: Dòng điện tổng ở tải trọng tĩnh</span>
+                  <span>: Dòng điện tổng ở tải trọng tĩnh (A)</span>
                 </li>
 
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_A" />
-                  <span>: Dòng điện tổng ở điều kiện báo cháy</span>
+                  <span>: Dòng điện tổng ở điều kiện báo cháy (A)</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
@@ -454,7 +458,8 @@ export default function FireBatteryTab({
                   display={false}
                   math="I_{\mathrm{PSE}}"
                   className="!inline"
-                />
+                />{" "}
+                (A)
               </div>
               <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                 <KatexFormula math="I_{\mathrm{PSE}} = I_Q + I_C" />
@@ -463,12 +468,12 @@ export default function FireBatteryTab({
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_Q" />
-                  <span>: Dòng điện tổng trạng thái tĩnh</span>
+                  <span>: Dòng điện tổng trạng thái tĩnh (A)</span>
                 </li>
                 <li className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="text-indigo-600">•</span>
                   <KatexFormula display={false} math="I_C" />
-                  <span>: Dòng điện nạp tối thiểu</span>
+                  <span>: Dòng điện nạp tối thiểu (A)</span>
                 </li>
               </ul>
             </div>

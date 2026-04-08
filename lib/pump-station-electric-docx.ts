@@ -700,9 +700,8 @@ export async function buildPumpStationElectricDocBuffer(
     indent: { left: INDENT_BLOCK },
     children: [
       tr(
-        "Kết luận: Để đảm bảo theo quy định, máy phát điện dự phòng phải có công suất tối thiểu ",
+        "Kết luận: Để đảm bảo theo quy định, máy phát điện dự phòng phải có công suất tối thiểu là ",
       ),
-      tr(`${smpdStr} kVA`, { bold: true }),
       tr(` (max(`),
       ...sub("P", "tt"),
       tr("/cosφ, "),
@@ -710,8 +709,9 @@ export async function buildPumpStationElectricDocBuffer(
       tr(`/cosφ) · `),
       ...sub("k", "dp"),
       tr(
-        ` = max(${pttBackupStr}/${cosStr}, ${pkdStr}/${cosStr}) × ${kdpStr} kVA.`,
+        ` = max(${pttBackupStr}/${cosStr}, ${pkdStr}/${cosStr}) × ${kdpStr} kVA= `,
       ),
+      tr(`${smpdStr} kVA`, { bold: true }),
     ],
   });
 

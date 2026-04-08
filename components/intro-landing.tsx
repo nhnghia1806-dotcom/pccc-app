@@ -169,7 +169,7 @@ function FeatureCard({
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-red-600/25 bg-gradient-to-br from-zinc-900/90 to-zinc-950 p-5 shadow-lg transition hover:border-amber-400/35 hover:shadow-[0_0_32px_rgba(200,30,30,0.15)]">
       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-600/10 blur-2xl transition group-hover:bg-amber-500/10" />
-      <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-red-950/80 text-2xl ring-2 ring-amber-500/30">
+      <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-red-950/85 text-2xl ring-2 ring-amber-400/45 shadow-[0_0_18px_rgba(245,184,0,0.25)]">
         {icon}
       </div>
       <h3 className="relative mt-4 text-lg font-bold text-white">{title}</h3>
@@ -230,19 +230,13 @@ export default function IntroLanding() {
           <nav className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
             <Link
               href="/login"
-              className="rounded-lg border-2 border-white/25 bg-transparent px-3 py-2 text-xs font-bold text-white transition hover:border-amber-400/60 hover:bg-white/5 sm:px-4 sm:text-sm"
-            >
-              Đăng nhập
-            </Link>
-            <Link
-              href="/register"
               className="rounded-lg px-3 py-2 text-xs font-bold text-zinc-950 shadow-lg transition hover:brightness-110 sm:px-4 sm:text-sm"
               style={{
                 background: `linear-gradient(180deg, ${AMBER_SOFT} 0%, ${AMBER} 100%)`,
                 boxShadow: `0 4px 20px rgba(200, 30, 30, 0.35)`,
               }}
             >
-              Đăng ký
+              Đăng nhập
             </Link>
           </nav>
         </div>
@@ -303,12 +297,12 @@ export default function IntroLanding() {
           <SectionTitle kicker="Năng lực">Tổng quan phần mềm</SectionTitle>
           <div className="mx-auto mb-12 grid gap-4 sm:grid-cols-3">
             <FeatureCard
-              icon={<span aria-hidden>🛢️</span>}
+              icon={<span aria-hidden>🧯</span>}
               title="Trạm bơm chữa cháy"
               desc="Tính phụ tải bơm, máy biến áp, máy phát điện dự phòng — bám sát bài toán nguồn điện trạm bơm PCCC."
             />
             <FeatureCard
-              icon={<span aria-hidden>🔔</span>}
+              icon={<span aria-hidden>🔥</span>}
               title="Báo cháy tự động"
               desc="Dòng tĩnh, dòng báo cháy, ắc quy dự phòng và nguồn chính — đầy đủ cho hệ thống TTBC."
             />

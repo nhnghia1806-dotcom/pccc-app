@@ -91,7 +91,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-4 text-sm text-zinc-600">
+        {/* <div className="mt-4 text-sm text-zinc-600">
           Chưa có tài khoản?{" "}
           <Link
             className="font-medium text-zinc-900 underline"
@@ -99,7 +99,7 @@ export default function LoginPage() {
           >
             Đăng ký
           </Link>
-        </div>
+        </div> */}
       </div>
     </div>
   );

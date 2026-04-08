@@ -89,17 +89,15 @@ function Card({
             {title}
           </div>
         </div>
-        {right
-          ? isPump
-            ? (
-                <div className="[&_button]:rounded-lg [&_button]:border-white/35 [&_button]:bg-white/10 [&_button]:text-white [&_button]:hover:bg-white/20">
-                  {right}
-                </div>
-              )
-            : (
-                right
-              )
-          : null}
+        {right ? (
+          isPump ? (
+            <div className="[&_button]:rounded-lg [&_button]:border-white/35 [&_button]:bg-white/10 [&_button]:text-white [&_button]:hover:bg-white/20">
+              {right}
+            </div>
+          ) : (
+            right
+          )
+        ) : null}
       </div>
       <div
         className={
@@ -195,7 +193,9 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
   const thead = isPump
     ? "bg-gradient-to-r from-indigo-900 to-blue-800 text-[11px] font-semibold uppercase tracking-wide text-white"
     : "bg-slate-50 text-slate-700";
-  const thPad = isPump ? "px-3 py-2.5 text-left" : "px-3 py-2 text-left font-medium";
+  const thPad = isPump
+    ? "px-3 py-2.5 text-left"
+    : "px-3 py-2 text-left font-medium";
   const rowHover = isPump
     ? "border-t border-indigo-100/80 transition hover:bg-violet-50/50"
     : "border-t border-slate-100 hover:bg-slate-50";
@@ -351,7 +351,9 @@ function BackupTable({
   const thead = isPump
     ? "bg-gradient-to-r from-indigo-900 to-blue-800 text-[11px] font-semibold uppercase tracking-wide text-white"
     : "bg-slate-50 text-slate-700";
-  const thPad = isPump ? "px-3 py-2.5 text-left" : "px-3 py-2 text-left font-medium";
+  const thPad = isPump
+    ? "px-3 py-2.5 text-left"
+    : "px-3 py-2 text-left font-medium";
   const rowHover = isPump
     ? "border-t border-indigo-100/80 transition hover:bg-violet-50/50"
     : "border-t border-slate-100 hover:bg-slate-50";
@@ -674,7 +676,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
               onClick={() => setTab("electric")}
               type="button"
             >
-              BẢNG TÍNH NGUỒN CẤP ĐIỆN CHO TRẠM BƠM PHỤC VỤ CHỮA CHÁY
+              TÍNH CÔNG SUẤT NGUỒN CẤP ĐIỆN CHO TRẠM BƠM PHỤC VỤ CHỮA CHÁY
             </button>
             <button
               className={`rounded-lg px-3 py-2 font-semibold transition ${
@@ -685,7 +687,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
               onClick={() => setTab("fireBattery")}
               type="button"
             >
-              BẢNG TÍNH NGUỒN CẤP ĐIỆN CHO HỆ THỐNG BÁO CHÁY TỰ ĐỘNG
+              BẢNG TÍNH DÒNG ĐIỆN DUNG LƯỢNG CẤP CHO CHO HỆ THỐNG BÁO CHÁY TỰ
+              ĐỘNG
             </button>
           </div>
         </div>
@@ -727,7 +730,13 @@ export default function PcccElectricClient({ userEmail }: Props) {
                 <div className="space-y-3 text-sm text-zinc-800">
                   <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
                     <div className="font-bold text-indigo-950">
-                      1) Phụ tải tính toán bơm nước chữa cháy
+                      1) Phụ tải tính toán bơm nước chữa cháy{" "}
+                      <KatexFormula
+                        display={false}
+                        math="P_{tt}"
+                        className="!inline"
+                      />{" "}
+                      (kW)
                     </div>
                     <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                       <KatexFormula math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i" />
@@ -739,7 +748,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                           display={false}
                           math="P_i = P_{\text{đm}} \cdot \text{Số lượng}"
                         />
-                        <span>(Công suất điện định mức của bơm thứ i)</span>
+                        <span>
+                          (Công suất điện định mức (kW) của bơm thứ i)
+                        </span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-indigo-600">•</span>
@@ -751,7 +762,13 @@ export default function PcccElectricClient({ userEmail }: Props) {
 
                   <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
                     <div className="font-bold text-indigo-950">
-                      2) Công suất biểu kiến máy biến áp
+                      2) Công suất biểu kiến máy biến áp{" "}
+                      <KatexFormula
+                        display={false}
+                        math="S_{\mathrm{MBA}}"
+                        className="!inline"
+                      />{" "}
+                      (kVA)
                     </div>
                     <div className="mb-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                       <KatexFormula math="S_{\mathrm{MBA}} \geq \dfrac{P_{tt}}{\cos\varphi}" />
@@ -760,7 +777,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-indigo-600">•</span>
                         <KatexFormula display={false} math="P_{tt}" />
-                        <span>: Tổng phụ tải tính toán</span>
+                        <span>: Tổng phụ tải tính toán (kW)</span>
                       </li>
                       <li className="flex flex-wrap items-baseline gap-x-1.5">
                         <span className="text-indigo-600">•</span>
@@ -774,8 +791,13 @@ export default function PcccElectricClient({ userEmail }: Props) {
 
                   <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
                     <div className="font-bold text-indigo-950">
-                      3) Công suất máy phát điện dự phòng (khi sử dụng bơm chữa
-                      cháy dự phòng điện)
+                      3) Công suất máy phát điện dự phòng {" "}
+                      <KatexFormula
+                        display={false}
+                        math="S_{\text{MPĐ}}"
+                        className="!inline"
+                      />{" "}
+                      (A)
                     </div>
                     <div className="mb-3 space-y-3 rounded-lg border border-indigo-300/60 bg-white p-3 text-indigo-900">
                       <KatexFormula math="P_{tt} = K_{yc} \displaystyle\sum_{i=1}^{n} P_i" />
@@ -818,8 +840,8 @@ export default function PcccElectricClient({ userEmail }: Props) {
               ) : (
                 <p className="text-sm text-zinc-600">
                   Đang ẩn phần công thức. Bấm{" "}
-                  <span className="font-semibold text-indigo-800">Mở</span> ở góc
-                  phải để mở lại.
+                  <span className="font-semibold text-indigo-800">Mở</span> ở
+                  góc phải để mở lại.
                 </p>
               )}
             </Card>
@@ -844,7 +866,11 @@ export default function PcccElectricClient({ userEmail }: Props) {
             </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card variant="pump" title="Bơm chữa cháy điện dự phòng" icon="⚙️">
+              <Card
+                variant="pump"
+                title="Bơm chữa cháy điện dự phòng"
+                icon="⚙️"
+              >
                 <BackupTable
                   variant="pump"
                   items={inputs.backupPumps}
@@ -1007,7 +1033,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   ) : (
                     <p className="mt-3 border-t border-indigo-100 pt-3 text-sm leading-relaxed text-indigo-950/90">
-                      <span className="font-bold text-indigo-900">Kết luận:</span>{" "}
+                      <span className="font-bold text-indigo-900">
+                        Kết luận:
+                      </span>{" "}
                       Để đảm bảo yêu cầu theo quy định, công trình phải sử dụng
                       máy biến áp có công suất tối thiểu là{" "}
                       <span className="font-bold tabular-nums text-indigo-800">
@@ -1068,7 +1096,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
                     </div>
                   ) : (
                     <p className="mt-3 border-t border-indigo-100 pt-3 text-sm leading-relaxed text-indigo-950/90">
-                      <span className="font-bold text-indigo-900">Kết luận:</span>{" "}
+                      <span className="font-bold text-indigo-900">
+                        Kết luận:
+                      </span>{" "}
                       Để đảm bảo theo quy định, máy phát điện dự phòng phải có
                       công suất tối thiểu{" "}
                       <span className="font-bold tabular-nums text-indigo-800">
