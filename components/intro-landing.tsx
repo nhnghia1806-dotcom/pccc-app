@@ -223,7 +223,7 @@ export default function IntroLanding() {
                 Phòng cháy chữa cháy
               </p>
               <p className="text-xs font-bold uppercase leading-snug tracking-wide text-white sm:text-sm md:text-base">
-                Phần mềm tính toán nguồn điện phục vụ hệ thống PCCC
+                Phần mềm tính toán và kiểm tra công suất nguồn điện cho hệ thống PCCC
               </p>
             </div>
           </div>
@@ -264,8 +264,7 @@ export default function IntroLanding() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-3xl text-pretty text-base font-semibold leading-relaxed text-red-100/95 sm:text-lg">
-              Phần mềm tính toán nguồn điện phục vụ hệ thống phòng cháy, chữa
-              cháy
+              Phần mềm tính toán và kiểm tra công suất nguồn điện cho hệ thống PCCC
             </p>
             <p className="mx-auto mt-3 max-w-3xl text-pretty text-sm leading-relaxed text-zinc-300 sm:text-base">
               Sản phẩm sáng kiến của Giảng viên Khoa Phòng cháy — Đại học PCCC

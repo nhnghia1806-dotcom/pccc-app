@@ -148,7 +148,7 @@ function EditableDeviceTable({
             <tr>
               <th className="px-3 py-2.5">STT</th>
               <th className="px-3 py-2.5">Tên</th>
-              <th className="px-3 py-2.5">Số lượng</th>
+              <th className="px-3 py-2.5">Số lượng (cái)</th>
               <th className="px-3 py-2.5">
                 <span className="inline-flex flex-wrap items-baseline gap-x-1">
                   Dòng tiêu thụ mỗi thiết bị <span>(mA)</span>

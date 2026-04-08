@@ -116,7 +116,7 @@ function buildDeviceTable(
     tableHeader: true,
     children: [
       deviceCell("Thiết bị", { header: true }),
-      deviceCell("Số lượng", { header: true }),
+      deviceCell("Số lượng (cái)", { header: true }),
       deviceCell("Dòng tiêu thụ mỗi thiết bị (mA)", { header: true }),
       deviceCell("Dòng tiêu thụ (mA)", { header: true }),
       deviceCell("Trạng thái", { header: true }),

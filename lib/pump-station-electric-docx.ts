@@ -187,7 +187,7 @@ function buildLoadsTable(
       tableCell("Stt", true, { header: true }),
       tableCell("Tên phụ tải", true, { header: true }),
       tableCell("Công suất định mức 1 thiết bị (kW)", true, { header: true }),
-      tableCell("Số lượng", true, { header: true }),
+      tableCell("Số lượng (cái)", true, { header: true }),
       tableCell("Tổng công suất định mức Pi (kW)", true, { header: true }),
     ],
   });

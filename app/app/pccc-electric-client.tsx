@@ -218,7 +218,7 @@ function LoadsTable<T extends { name: string; kw: number; quantity: number }>({
               <th className={thPad}>STT</th>
               <th className={thPad}>Tên</th>
               <th className={thPad}>Công suất định mức (KW)</th>
-              <th className={thPad}>Số lượng</th>
+              <th className={thPad}>Số lượng (cái)</th>
               <th className={thPad}></th>
             </tr>
           </thead>
@@ -376,7 +376,7 @@ function BackupTable({
               <th className={thPad}>STT</th>
               <th className={thPad}>Tên bơm</th>
               <th className={thPad}>Công suất định mức (KW)</th>
-              <th className={thPad}>Số lượng</th>
+              <th className={thPad}>Số lượng (cái)</th>
               <th className={thPad}></th>
             </tr>
           </thead>
@@ -646,9 +646,9 @@ export default function PcccElectricClient({ userEmail }: Props) {
     <div className="min-h-screen bg-[#f3f6fb]">
       <header className="border-b border-slate-200 bg-white">
         <div className="relative mx-auto flex min-h-[52px] w-full max-w-[1600px] items-center justify-center px-0 py-3 sm:min-h-[56px] sm:px-0 sm:py-4">
-          <h1 className="text-balance px-2 text-center text-xl font-extrabold leading-tight tracking-tight text-slate-800 sm:max-w-[calc(100%-15rem)] sm:text-[28px] md:max-w-[calc(100%-18rem)] md:text-[32px]">
-            🔥 PHẦN MỀM TÍNH TOÁN PCCC
-          </h1>
+          <h3 className="text-balance px-2 text-center text-base font-semibold leading-snug tracking-normal text-slate-800 sm:max-w-[calc(100%-15rem)] sm:text-lg md:max-w-[calc(100%-18rem)] md:text-xl">
+            🔥TÍNH TOÁN VÀ KIỂM TRA CÔNG SUẤT NGUỒN ĐIỆN CHO HỆ THỐNG PCCC
+          </h3>
           <div className="absolute right-2 top-1/2 z-10 flex max-w-[min(calc(100%-8rem),20rem)] -translate-y-1/2 items-center gap-2 sm:right-2 sm:gap-3 md:max-w-sm pr-8">
             <span className="hidden min-w-0 flex-1 truncate text-right text-sm text-zinc-600 sm:inline">
               {userEmail}
@@ -687,8 +687,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
               onClick={() => setTab("fireBattery")}
               type="button"
             >
-              BẢNG TÍNH DÒNG ĐIỆN DUNG LƯỢNG CẤP CHO CHO HỆ THỐNG BÁO CHÁY TỰ
-              ĐỘNG
+              TÍNH DÒNG ĐIỆN DUNG LƯỢNG CẤP CHO CHO HỆ THỐNG BÁO CHÁY TỰ ĐỘNG
             </button>
           </div>
         </div>
@@ -791,7 +790,7 @@ export default function PcccElectricClient({ userEmail }: Props) {
 
                   <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/50 px-3 py-2">
                     <div className="font-bold text-indigo-950">
-                      3) Công suất máy phát điện dự phòng {" "}
+                      3) Công suất máy phát điện dự phòng{" "}
                       <KatexFormula
                         display={false}
                         math="S_{\text{MPĐ}}"
