@@ -766,5 +766,5 @@ export async function buildFireBatteryReportDocBuffer(
     ],
   });
 
-  return Packer.toBuffer(doc);
+  return await Packer.toBuffer(doc);
 }
