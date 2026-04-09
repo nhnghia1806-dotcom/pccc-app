@@ -18,20 +18,25 @@ export async function POST(req: Request) {
   const parsed = parseAppSavedJson(body.inputs ?? null);
   if (!parsed) return NextResponse.json({ error: "invalid_inputs" }, { status: 400 });
 
-  const fb = parsed.fireBattery;
-  const results = calcFireBattery(fb);
-  const buf = await buildFireBatteryReportDocBuffer(
-    parsed.projectMeta,
-    fb,
-    results,
-  );
+  try {
+    const fb = parsed.fireBattery;
+    const results = calcFireBattery(fb);
+    const buf = await buildFireBatteryReportDocBuffer(
+      parsed.projectMeta,
+      fb,
+      results,
+    );
 
-  return new NextResponse(new Uint8Array(buf), {
-    headers: {
-      "content-type":
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "content-disposition":
-        'attachment; filename="bang-tinh-bao-chay-tu-dong.docx"',
-    },
-  });
+    return new NextResponse(new Uint8Array(buf), {
+      headers: {
+        "content-type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "content-disposition":
+          'attachment; filename="bang-tinh-bao-chay-tu-dong.docx"',
+      },
+    });
+  } catch (err) {
+    console.error("[api/export/word-fire] failed", err);
+    return NextResponse.json({ error: "export_failed" }, { status: 500 });
+  }
 }

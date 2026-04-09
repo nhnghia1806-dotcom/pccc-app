@@ -164,9 +164,7 @@ function tableCell(
   const columnSpan = opts?.columnSpan;
   return new TableCell({
     ...(columnSpan != null ? { columnSpan } : {}),
-    shading: isHeader
-      ? { type: ShadingType.CLEAR, fill: "E8E8E8" }
-      : undefined,
+    shading: isHeader ? { type: ShadingType.CLEAR, fill: "E8E8E8" } : undefined,
     children: [
       new Paragraph({
         alignment: isHeader ? AlignmentType.CENTER : AlignmentType.LEFT,
@@ -300,10 +298,7 @@ export async function buildPumpStationElectricDocBuffer(
     new Paragraph({
       spacing: { after: 100, ...LINE_BODY },
       alignment: AlignmentType.JUSTIFIED,
-      children: [
-        tr("Địa điểm: ", { bold: true }),
-        tr(pm.diaDiem.trim() || ""),
-      ],
+      children: [tr("Địa điểm: ", { bold: true }), tr(pm.diaDiem.trim() || "")],
     }),
     new Paragraph({
       spacing: { after: 100, ...LINE_BODY },
@@ -339,11 +334,14 @@ export async function buildPumpStationElectricDocBuffer(
     spacing: { before: 280, after: 200, ...LINE_BODY },
     outlineLevel: 0,
     children: [
-      tr("I. TÍNH TOÁN, LỰA CHỌN NGUỒN CẤP ĐIỆN CHO TRẠM BƠM PHỤC VỤ CHỮA CHÁY", {
-        bold: true,
-        size: SZ_H1,
-        font: FONT,
-      }),
+      tr(
+        "I. TÍNH TOÁN, LỰA CHỌN NGUỒN CẤP ĐIỆN CHO TRẠM BƠM PHỤC VỤ CHỮA CHÁY",
+        {
+          bold: true,
+          size: SZ_H1,
+          font: FONT,
+        },
+      ),
     ],
   });
 
@@ -379,7 +377,9 @@ export async function buildPumpStationElectricDocBuffer(
     alignment: AlignmentType.JUSTIFIED,
     indent: { left: INDENT_BLOCK },
     children: [
-      tr("- Tính công suất tính toán của nhóm phụ tải bơm nước chữa cháy:", { bold: true }),
+      tr("- Tính công suất tính toán của nhóm phụ tải bơm nước chữa cháy:", {
+        bold: true,
+      }),
     ],
   });
 
@@ -429,13 +429,15 @@ export async function buildPumpStationElectricDocBuffer(
     alignment: AlignmentType.JUSTIFIED,
     indent: { left: INDENT_BLOCK },
     children: [
-      tr("- Tính toán, lựa chọn công suất của máy biến áp theo công thức:", { bold: true }),
+      tr("- Tính toán, lựa chọn công suất của máy biến áp theo công thức:", {
+        bold: true,
+      }),
     ],
   });
 
   const mbaFormula = new Paragraph({
-    spacing: { after: 160, before: 40, ...LINE_BODY },
-    indent: { left: INDENT_BLOCK },
+    spacing: { after: 100, before: 40, ...LINE_BODY },
+    alignment: AlignmentType.CENTER,
     children: [...sub("S", "MBA"), tr(" ≥ "), ...sub("P", "tt"), tr("/cosφ")],
   });
 
@@ -443,6 +445,22 @@ export async function buildPumpStationElectricDocBuffer(
     spacing: { after: 80, ...LINE_BODY },
     indent: { left: INDENT_BLOCK },
     children: [tr("Trong đó:", { bold: true })],
+  });
+
+  const mbaCalc = new Paragraph({
+    spacing: { after: 160, ...LINE_BODY },
+    alignment: AlignmentType.JUSTIFIED,
+    indent: { left: INDENT_BLOCK },
+    children: [
+      tr("→ "),
+      ...sub("S", "MBA", false),
+      tr(" ≥ "),
+      ...sub("P", "tt", false),
+      tr("/cosφ = "),
+      tr(`${pttStr}/${cosStr} = `),
+      tr(`${smbaStr} kVA`, { bold: true }),
+      tr("."),
+    ],
   });
 
   const mbaCos = new Paragraph({
@@ -601,7 +619,9 @@ export async function buildPumpStationElectricDocBuffer(
     alignment: AlignmentType.JUSTIFIED,
     indent: { left: INDENT_BLOCK },
     children: [
-      tr("- Tính toán, lựa chọn công suất của máy phát điện dự phòng:", { bold: true }),
+      tr("- Tính toán, lựa chọn công suất của máy phát điện dự phòng:", {
+        bold: true,
+      }),
     ],
   });
 
@@ -618,7 +638,7 @@ export async function buildPumpStationElectricDocBuffer(
 
   const smpForm2 = new Paragraph({
     spacing: { after: 100, ...LINE_BODY },
-    indent: { left: INDENT_BLOCK },
+    alignment: AlignmentType.CENTER,
     children: [
       tr("SMPĐ", { italics: true }),
       tr(" ≥ max("),
@@ -632,7 +652,7 @@ export async function buildPumpStationElectricDocBuffer(
 
   const smpForm3 = new Paragraph({
     spacing: { after: 140, ...LINE_BODY },
-    indent: { left: INDENT_BLOCK },
+    alignment: AlignmentType.CENTER,
     children: [
       tr("↔ SMPĐ", { italics: true }),
       tr(" ≥ max("),
@@ -700,18 +720,18 @@ export async function buildPumpStationElectricDocBuffer(
     indent: { left: INDENT_BLOCK },
     children: [
       tr(
-        "Kết luận: Để đảm bảo theo quy định, máy phát điện dự phòng phải có công suất tối thiểu là ",
+        "Kết luận: Để đảm bảo theo quy định, máy phát điện dự phòng phải có công suất tối thiểu ",
       ),
-      tr(` (max(`),
+      tr(`${smpdStr} kVA`, { bold: true }),
+      tr(" (max("),
       ...sub("P", "tt"),
       tr("/cosφ, "),
       ...sub("P", "kđ"),
       tr(`/cosφ) · `),
       ...sub("k", "dp"),
       tr(
-        ` = max(${pttBackupStr}/${cosStr}, ${pkdStr}/${cosStr}) × ${kdpStr} kVA= `,
+        ` = max(${pttBackupStr}/${cosStr}, ${pkdStr}/${cosStr}) × ${kdpStr} kVA).`,
       ),
-      tr(`${smpdStr} kVA`, { bold: true }),
     ],
   });
 
@@ -745,6 +765,7 @@ export async function buildPumpStationElectricDocBuffer(
           mbaLead,
           mbaFormula,
           mbaTrongDo,
+          mbaCalc,
           mbaCos,
           mbaKetLuan,
           h23,

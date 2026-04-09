@@ -556,47 +556,95 @@ export default function PcccElectricClient({ userEmail }: Props) {
   }, []);
 
   async function exportWord() {
-    const res = await fetch("/api/export/word", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        inputs: toAppSavedJson({
-          electric: inputs,
-          fireBattery,
-          projectMeta,
+    try {
+      const res = await fetch("/api/export/word", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          inputs: toAppSavedJson({
+            electric: inputs,
+            fireBattery,
+            projectMeta,
+          }),
         }),
-      }),
-    });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "bang-tinh-tram-bom-pccc.docx";
-    a.click();
-    URL.revokeObjectURL(url);
+      });
+
+      if (!res.ok) {
+        const msg =
+          res.status === 401
+            ? "Xuất Word thất bại: phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            : `Xuất Word thất bại. Vui lòng đăng nhập lại.`;
+        setTransientCalculateError(msg);
+        console.error("[export-word] failed", res.status);
+        return;
+      }
+
+      const blob = await res.blob();
+      if (blob.size === 0) {
+        setTransientCalculateError("Xuất Word thất bại: file rỗng.");
+        console.error("[export-word] empty blob");
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bang-tinh-tram-bom-pccc.docx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 8000);
+    } catch (err) {
+      setTransientCalculateError("Xuất Word thất bại: lỗi mạng hoặc trình duyệt.");
+      console.error("[export-word] exception", err);
+    }
   }
 
   async function exportWordFire() {
-    const res = await fetch("/api/export/word-fire", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        inputs: toAppSavedJson({
-          electric: inputs,
-          fireBattery,
-          projectMeta,
+    try {
+      const res = await fetch("/api/export/word-fire", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          inputs: toAppSavedJson({
+            electric: inputs,
+            fireBattery,
+            projectMeta,
+          }),
         }),
-      }),
-    });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "bang-tinh-bao-chay-tu-dong.docx";
-    a.click();
-    URL.revokeObjectURL(url);
+      });
+
+      if (!res.ok) {
+        const msg =
+          res.status === 401
+            ? "Xuất Word thất bại: phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            : `Xuất Word thất bại. Vui lòng đăng nhập lại.`;
+        setTransientFireBatteryCalculateError(msg);
+        console.error("[export-word-fire] failed", res.status);
+        return;
+      }
+
+      const blob = await res.blob();
+      if (blob.size === 0) {
+        setTransientFireBatteryCalculateError("Xuất Word thất bại: file rỗng.");
+        console.error("[export-word-fire] empty blob");
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bang-tinh-bao-chay-tu-dong.docx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 8000);
+    } catch (err) {
+      setTransientFireBatteryCalculateError(
+        "Xuất Word thất bại: lỗi mạng hoặc trình duyệt.",
+      );
+      console.error("[export-word-fire] exception", err);
+    }
   }
 
   function handleCalculate() {

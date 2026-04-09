@@ -18,19 +18,25 @@ export async function POST(req: Request) {
   const parsed = parseAppSavedJson(body.inputs ?? null);
   if (!parsed) return NextResponse.json({ error: "invalid_inputs" }, { status: 400 });
 
-  const inputs = parsed.electric;
-  const results = calcPcccElectric(inputs);
-  const buf = await buildPumpStationElectricDocBuffer(
-    parsed.projectMeta,
-    inputs,
-    results,
-  );
+  try {
+    const inputs = parsed.electric;
+    const results = calcPcccElectric(inputs);
+    const buf = await buildPumpStationElectricDocBuffer(
+      parsed.projectMeta,
+      inputs,
+      results,
+    );
 
-  return new NextResponse(new Uint8Array(buf), {
-    headers: {
-      "content-type":
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "content-disposition": 'attachment; filename="bang-tinh-tram-bom-pccc.docx"',
-    },
-  });
+    return new NextResponse(new Uint8Array(buf), {
+      headers: {
+        "content-type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "content-disposition":
+          'attachment; filename="bang-tinh-tram-bom-pccc.docx"',
+      },
+    });
+  } catch (err) {
+    console.error("[api/export/word] failed", err);
+    return NextResponse.json({ error: "export_failed" }, { status: 500 });
+  }
 }
