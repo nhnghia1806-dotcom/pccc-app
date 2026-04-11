@@ -22,19 +22,19 @@ export const PCCC_GALLERY: PcccGalleryItem[] = [
     caption: "Hệ thống van & ống",
   },
   {
-    src: "/images/pccc/fire-alarm-power-supply.png",
+    src: "/images/pccc/tủ-báo-cháy.png",
     alt: "Tủ nguồn trung tâm báo cháy",
-    caption: "Nguồn TTBC",
+    caption: "Tủ báo cháy",
   },
   {
-    src: "/images/pccc/battery-backup.png",
+    src: "/images/pccc/Ac-quy-du-phong.png",
     alt: "Minh họa nguồn dự phòng ắc quy",
     caption: "Dự phòng ắc quy",
   },
   {
     src: "/images/pccc/may-bom-chua-chay-pentax-15hp-scaled-e1658512891131.jpg",
     alt: "Bơm chữa cháy dự phòng",
-    caption: "Dự phòng ắc quy",
+    caption: "Bơm chữa cháy",
   },
 ];
 

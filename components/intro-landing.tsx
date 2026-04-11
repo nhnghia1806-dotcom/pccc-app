@@ -87,16 +87,16 @@ function GalleryCarousel() {
                 key={`${slide}-${item.src}-${idx}`}
                 className="group overflow-hidden rounded-2xl border-2 border-red-600/35 bg-gradient-to-b from-zinc-900/80 to-zinc-950 shadow-[0_12px_40px_rgba(0,0,0,0.45),0_0_0_1px_rgba(245,184,0,0.12)] transition hover:border-amber-400/40"
               >
-                <div className="relative w-full min-h-[240px] h-[42vh] max-h-[620px] bg-zinc-900 sm:min-h-[280px] md:h-[min(50vh,600px)]">
+                <div className="relative w-full min-h-[240px] h-[42vh] max-h-[620px] bg-zinc-900/95 p-2 sm:min-h-[280px] md:h-[min(50vh,600px)] md:p-3">
                   <Image
                     src={item.src}
                     alt={item.alt}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition duration-500 group-hover:scale-[1.02]"
+                    className="object-contain object-center transition duration-500 group-hover:scale-[1.02]"
                     priority={slide === 0 && idx === 0}
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent" />
                 </div>
                 <figcaption className="border-t border-amber-500/20 bg-zinc-950/60 px-3 py-2.5 text-center text-xs font-semibold text-amber-100/95 sm:text-sm">
                   {item.caption}
@@ -169,7 +169,7 @@ function FeatureCard({
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-red-600/25 bg-gradient-to-br from-zinc-900/90 to-zinc-950 p-5 shadow-lg transition hover:border-amber-400/35 hover:shadow-[0_0_32px_rgba(200,30,30,0.15)]">
       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-red-600/10 blur-2xl transition group-hover:bg-amber-500/10" />
-      <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-red-950/85 text-2xl ring-2 ring-amber-400/45 shadow-[0_0_18px_rgba(245,184,0,0.25)]">
+      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-red-950/85 text-2xl ring-2 ring-amber-400/45 shadow-[0_0_18px_rgba(245,184,0,0.25)]">
         {icon}
       </div>
       <h3 className="relative mt-4 text-lg font-bold text-white">{title}</h3>
@@ -247,7 +247,7 @@ export default function IntroLanding() {
           <div className="mx-auto max-w-4xl">
             <div className="mb-6 inline-flex flex-wrap items-center justify-center gap-2">
               <span className="rounded-full border border-red-500/40 bg-red-950/50 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-red-200 backdrop-blur-sm sm:text-xs">
-                Đại học PCCC
+                Trường đại học PCCC
               </span>
               <span className="rounded-full border border-amber-500/35 bg-amber-950/30 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-amber-200 sm:text-xs">
                 Khoa Phòng cháy
@@ -267,7 +267,7 @@ export default function IntroLanding() {
               Phần mềm tính toán và kiểm tra công suất nguồn điện cho hệ thống PCCC
             </p>
             <p className="mx-auto mt-3 max-w-3xl text-pretty text-sm leading-relaxed text-zinc-300 sm:text-base">
-              Sản phẩm sáng kiến của Giảng viên Khoa Phòng cháy — Đại học PCCC
+              Sản phẩm sáng kiến của Giảng viên Khoa Phòng cháy — Trường đại học PCCC
             </p>
             <p className="mx-auto mt-2 max-w-3xl text-pretty text-sm text-amber-200/85 sm:text-base">
               <span className="font-semibold text-amber-300">Chủ trì:</span>{" "}
@@ -296,12 +296,30 @@ export default function IntroLanding() {
           <SectionTitle kicker="Năng lực">Tổng quan phần mềm</SectionTitle>
           <div className="mx-auto mb-12 grid gap-4 sm:grid-cols-3">
             <FeatureCard
-              icon={<span aria-hidden>🧯</span>}
+              icon={
+                <Image
+                  src="/images/intro/fire-pump-feature.png"
+                  alt=""
+                  width={52}
+                  height={52}
+                  className="translate-y-1 h-[4.5rem] w-[4.5rem] object-contain"
+                  aria-hidden
+                />
+              }
               title="Trạm bơm chữa cháy"
               desc="Tính phụ tải bơm, máy biến áp, máy phát điện dự phòng — bám sát bài toán nguồn điện trạm bơm PCCC."
             />
             <FeatureCard
-              icon={<span aria-hidden>🔥</span>}
+              icon={
+                <Image
+                  src="/images/intro/fire-alarm-feature-icon.png"
+                  alt=""
+                  width={52}
+                  height={52}
+                  className="translate-y-1 h-[3.25rem] w-[3rem] object-contain"
+                  aria-hidden
+                />
+              }
               title="Báo cháy tự động"
               desc="Dòng tĩnh, dòng báo cháy, ắc quy dự phòng và nguồn chính — đầy đủ cho hệ thống TTBC."
             />
@@ -379,7 +397,7 @@ export default function IntroLanding() {
         />
         <p className="mt-2 text-xs text-zinc-500">
           © {new Date().getFullYear()} — Tính toán nguồn điện phục vụ hệ thống
-          PCCC · Đại học PCCC
+          PCCC · Trường đại học PCCC
         </p>
       </footer>
     </div>
